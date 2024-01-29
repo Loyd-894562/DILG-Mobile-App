@@ -24,6 +24,7 @@ class LatestIssuances extends StatelessWidget {
         currentIndex: 1,
         onItemSelected: (index) {
           // Handle item selection if needed
+          _navigateToSelectedPage(context, index);
         },
       ),
     );
@@ -55,5 +56,9 @@ class LatestIssuances extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  void _navigateToSelectedPage(BuildContext context, int index) {
+    // Handle navigation if needed
   }
 }

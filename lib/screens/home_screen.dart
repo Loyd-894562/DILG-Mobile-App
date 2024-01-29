@@ -5,18 +5,16 @@ import 'sidebar.dart';
 import 'latest_issuances.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  List<String> _drawerMenuItems = [
-    'Home',
-    'Search',
-    'Library',
-    'Latest Issuances'
-  ];
+  List<String> _drawerMenuItems = ['Home', 'Search', 'Library'];
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(
           _drawerMenuItems[_currentIndex.clamp(0, _drawerMenuItems.length - 1)],
-          style: TextStyle(
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -68,10 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.library_books),
             label: 'Library',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.article),
-            label: '',
-          ),
         ],
       ),
     );
@@ -108,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16.0),
             // Recently Downloaded Issuances
             Container(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(10),

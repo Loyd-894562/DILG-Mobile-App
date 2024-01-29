@@ -7,7 +7,6 @@ import 'draft_issuances.dart';
 import 'republic_acts.dart';
 import 'legal_opinions.dart';
 import 'home_screen.dart';
-import '../utils/routes.dart';
 
 class Sidebar extends StatelessWidget {
   final int currentIndex;
@@ -65,7 +64,7 @@ class Sidebar extends StatelessWidget {
               onPressed: () {
                 // Implement your logout logic here
                 // For example, redirect to login page
-                Navigator.pushReplacementNamed(context, Routes.login);
+                Navigator.pushReplacementNamed(context, '/login');
               },
             ),
           ],
@@ -97,11 +96,11 @@ class Sidebar extends StatelessWidget {
     }
   }
 
-  // void _navigateToPage(BuildContext context, Widget page) {
-  //   Navigator.of(context).push(MaterialPageRoute(builder: (context) => page));
-  //   onItemSelected(
-  //       0); // Reset the selected index to home when navigating to a new page
-  // }
+  void _navigateToPage(BuildContext context, Widget page) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => page));
+    onItemSelected(
+        0); // Reset the selected index to home when navigating to a new page
+  }
 
   Widget _buildSidebarItem(
       IconData icon, String title, int index, BuildContext context,

@@ -11,11 +11,18 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  String _email = '';
+  String _password = '';
   bool rememberMe = false;
   String emailError = '';
   String passwordError = '';
+  TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,12 +64,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     SizedBox(height: 8),
                     TextField(
-                      controller: _usernameController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        errorText: emailError.isNotEmpty ? emailError : null,
-                      ),
-                    ),
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          errorText: emailError.isNotEmpty ? emailError : null,
+                        ),
+                        onChanged: (value) {
+                          _email = value;
+                        }),
                     SizedBox(height: 8),
                     TextField(
                       controller: _passwordController,
@@ -72,6 +80,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             passwordError.isNotEmpty ? passwordError : null,
                       ),
                       obscureText: true,
+                      onChanged: (value) {
+                        _password = value;
+                      },
                     ),
                     SizedBox(height: 8),
                     Row(
@@ -88,20 +99,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         Spacer(),
                         ElevatedButton(
                           onPressed: () {
-                            String username = _usernameController.text;
-                            String password = _passwordController.text;
-
                             // Simple validation check
                             setState(() {
-                              emailError = username.isEmpty
+                              emailError = _email.isEmpty
                                   ? 'Please enter your email.'
                                   : '';
-                              passwordError = password.isEmpty
+                              passwordError = _password.isEmpty
                                   ? 'Please enter your password.'
                                   : '';
                             });
 
-                            if (username.isNotEmpty && password.isNotEmpty) {
+                            if (_email.isNotEmpty && _password.isNotEmpty) {
                               // Proceed with login logic
                               bool loginSuccessful = true;
 
