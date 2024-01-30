@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/routes.dart';
-// Import the IntroSection widget
-// import '../screens/latest_issuances.dart'; // Import your LatestIssuances page
+import '../screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,6 +20,10 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: Routes.introsection, // Set the initial route
       routes: Routes.getRoutes(context),
+      onGenerateRoute: (settings) {
+        // Handle unknown routes, such as pressing the back button
+        return MaterialPageRoute(builder: (context) => const HomeScreen());
+      },
     );
   }
 }

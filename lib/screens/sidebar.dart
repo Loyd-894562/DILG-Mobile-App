@@ -7,21 +7,22 @@ import 'draft_issuances.dart';
 import 'republic_acts.dart';
 import 'legal_opinions.dart';
 import 'home_screen.dart';
+import 'about_screen.dart';
+import 'developers_screen.dart';
 
 class Sidebar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onItemSelected;
 
-  Sidebar({required this.currentIndex, required this.onItemSelected});
+  const Sidebar({required this.currentIndex, required this.onItemSelected});
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: Container(
         color: Colors.blue[900],
-        child: Column(
+        child: ListView(
           children: [
-            // Place the burger button at the top right corner
             DrawerHeader(
               decoration: BoxDecoration(color: Colors.blue[900]),
               child: Row(
@@ -33,11 +34,11 @@ class Sidebar extends StatelessWidget {
                     height: 70.0,
                   ),
                   SizedBox(width: 8.0),
-                  Text(
+                  const Text(
                     'DILG - BOHOL PROVINCE',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 16.0,
+                      fontSize: 13.0,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -56,17 +57,14 @@ class Sidebar extends StatelessWidget {
                 Icons.account_balance, 'Republic Acts', 6, context),
             _buildSidebarItem(
                 Icons.library_books, 'Legal Opinions', 7, context),
-            _buildSidebarItem(
-              Icons.exit_to_app,
-              'Logout',
-              8,
-              context,
-              onPressed: () {
-                // Implement your logout logic here
-                // For example, redirect to login page
-                Navigator.pushReplacementNamed(context, '/login');
-              },
-            ),
+            Divider(color: Colors.white),
+            _buildSidebarItem(Icons.info, 'About', 8, context),
+            _buildSidebarItem(Icons.people, 'Developers', 9, context),
+            Divider(color: Colors.white),
+            _buildSidebarItem(Icons.exit_to_app, 'Logout', 10, context,
+                onPressed: () {
+              Navigator.pushReplacementNamed(context, '/login');
+            }),
           ],
         ),
       ),
@@ -75,6 +73,8 @@ class Sidebar extends StatelessWidget {
 
   Widget _getPageByIndex(int index) {
     switch (index) {
+      case 0:
+        return HomeScreen();
       case 1:
         return LatestIssuances();
       case 2:
@@ -89,6 +89,10 @@ class Sidebar extends StatelessWidget {
         return RepublicActs();
       case 7:
         return LegalOpinions();
+      case 8:
+        return About();
+      case 9:
+        return Developers();
       // Add cases for other items
       // ...
       default:
@@ -105,107 +109,33 @@ class Sidebar extends StatelessWidget {
   Widget _buildSidebarItem(
       IconData icon, String title, int index, BuildContext context,
       {VoidCallback? onPressed}) {
-    return ListTile(
-      title: Row(
-        children: [
-          Icon(icon, color: Colors.white, size: 24.0),
-          SizedBox(width: 8.0),
-          Text(
-            title,
-            style: TextStyle(
-              color: currentIndex == index
-                  ? Colors.white
-                  : Colors.white.withOpacity(0.5),
-              fontWeight:
-                  currentIndex == index ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
+    return InkWell(
       onTap: () {
+        onItemSelected(index);
+        Navigator.of(context).pop(); // Close the sidebar
+        _navigateToPage(context, _getPageByIndex(index));
         if (onPressed != null) {
           onPressed();
-        } else {
-          onItemSelected(index);
-          Navigator.of(context).pop(); // Close the sidebar
-          // Ensure the index is within bounds before navigating
-          if (index >= 0 && index < 8) {
-            switch (index) {
-              case 0:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HomeScreen(),
-                  ),
-                );
-                break;
-              case 1:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LatestIssuances(),
-                  ),
-                );
-                break;
-              case 2:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => JointCirculars(),
-                  ),
-                );
-                break;
-              case 3:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MemoCirculars(),
-                  ),
-                );
-                break;
-              case 4:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PresidentialDirectives(),
-                  ),
-                );
-                break;
-              case 5:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DraftIssuances(),
-                  ),
-                );
-                break;
-              case 6:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RepublicActs(),
-                  ),
-                );
-                break;
-              case 7:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LegalOpinions(),
-                  ),
-                );
-                break;
-              // Add cases for other items
-              // ...
-              default:
-                print("Invalid index: $index");
-                break;
-            }
-          } else {
-            print("Index out of bounds: $index");
-          }
         }
       },
+      child: ListTile(
+        title: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 24.0),
+            SizedBox(width: 8.0),
+            Text(
+              title,
+              style: TextStyle(
+                color: currentIndex == index
+                    ? Colors.white
+                    : Colors.white.withOpacity(0.5),
+                fontWeight:
+                    currentIndex == index ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -13,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   String _email = '';
   String _password = '';
+  bool _passwordVisible = false;
   bool rememberMe = false;
   String emailError = '';
   String passwordError = '';
@@ -34,14 +35,14 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               CircleAvatar(
-                radius: 50,
+                radius: 34,
                 backgroundImage: AssetImage('assets/dilg-main.png'),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 15),
               Text(
                 'Department of the Interior and Local Government - Bohol Province',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 17,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
@@ -58,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       'Sign in to your Account',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 15,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -78,10 +79,26 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: 'Password',
                         errorText:
                             passwordError.isNotEmpty ? passwordError : null,
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              // Toggle the visibility of the password
+                              _passwordVisible = !_passwordVisible;
+                            });
+                          },
+                          icon: Icon(
+                            _passwordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ),
-                      obscureText: true,
+                      obscureText: !_passwordVisible,
                       onChanged: (value) {
-                        _password = value;
+                        setState(() {
+                          _password = value; // Update _password on each change
+                        });
                       },
                     ),
                     SizedBox(height: 8),
@@ -133,11 +150,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 14),
               Text(
                 '© DILG-Bohol Province 2024',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   color: const Color.fromARGB(255, 6, 0, 0),
                 ),
               ),

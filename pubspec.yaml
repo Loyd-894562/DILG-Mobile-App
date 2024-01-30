@@ -64,6 +64,12 @@ flutter:
   uses-material-design: true
   assets:
     - assets/dilg-main.png
+    - assets/eunizel.png
+    - assets/eula.png
+    - assets/ace.png
+    - assets/lyod.png
+    - assets/bruce.png
+    - assets/mdc-logo.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

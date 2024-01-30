@@ -6,8 +6,17 @@ class JointCirculars extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Joint Circulars'),
-      ),
+          title: Text(
+            'Joint Circulars',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          leading: Builder(
+              builder: (context) => IconButton(
+                    icon: Icon(Icons.menu, color: Colors.blue[900]),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                  ))),
       body: Center(
         child: Text('Joint Circulars'),
       ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'sidebar.dart';
+import '../utils/routes.dart';
+import 'home_screen.dart';
 
 class LatestIssuances extends StatelessWidget {
   @override
@@ -61,4 +63,11 @@ class LatestIssuances extends StatelessWidget {
   void _navigateToSelectedPage(BuildContext context, int index) {
     // Handle navigation if needed
   }
+  // bool _handleBackButton(BuildContext context) {
+  //   // Handle back button press logic here
+  //   // You can check conditions and navigate accordingly
+  //   // For example, if you are on a specific screen, navigate to the home screen
+  //   Navigator.of(context).pushReplacementNamed(Routes.home);
+  //   return false; // Prevent back navigation
+  // }
 }

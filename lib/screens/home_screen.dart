@@ -5,16 +5,20 @@ import 'sidebar.dart';
 import 'latest_issuances.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  List<String> _drawerMenuItems = ['Home', 'Search', 'Library'];
+  List<String> _drawerMenuItems = [
+    'Home',
+    'Search',
+    'Library',
+    'Latest Issuances'
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +73,19 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  bool _handleBackButton() {
+    // Handle back button press logic here
+    // You can check conditions and navigate accordingly
+    // For example, if you are on a specific screen, navigate to the home screen
+    if (_currentIndex != 0) {
+      setState(() {
+        _currentIndex = 0;
+      });
+      return false; // Prevent back navigation
+    }
+    return true; // Allow back navigation
   }
 
   Widget _buildBody() {
@@ -129,6 +146,8 @@ class _HomeScreenState extends State<HomeScreen> {
       case 2:
         // Library Screen
         return LibraryScreen();
+      case 3:
+        return LatestIssuances();
       default:
         return Container();
     }

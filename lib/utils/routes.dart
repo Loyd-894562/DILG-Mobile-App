@@ -28,7 +28,7 @@ class Routes {
 
   static Map<String, WidgetBuilder> getRoutes(BuildContext context) {
     return {
-      home: (context) => HomeScreen(),
+      home: (context) => const HomeScreen(),
       search: (context) => SearchScreen(),
       library: (context) => LibraryScreen(),
       introsection: (context) => IntroSection(),
