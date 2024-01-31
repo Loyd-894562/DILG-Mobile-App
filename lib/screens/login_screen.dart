@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'package:DILGDOCS/Services/globals.dart';
+import 'package:DILGDOCS/screens/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/Services/globals.dart';
-import 'package:flutter_application_1/screens/home_screen.dart';
 import '../Services/auth_services.dart';
 import 'package:http/http.dart' as http; // Make sure to import your HomeScreen widget
 

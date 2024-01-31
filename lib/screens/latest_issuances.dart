@@ -39,17 +39,18 @@ class LatestIssuances extends StatelessWidget {
         Container(
           padding: EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: Colors.blue[900],
             borderRadius: BorderRadius.circular(10),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Latest Issuances Content',
+                'Reference No',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color:Colors.white
                 ),
               ),
               // Add your widgets for Latest Issuances content
