@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'home_screen.dart'; // Make sure to import your HomeScreen widget
+import 'package:flutter_application_1/Services/globals.dart';
+import 'package:flutter_application_1/screens/home_screen.dart';
+import '../Services/auth_services.dart';
+import 'package:http/http.dart' as http; // Make sure to import your HomeScreen widget
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key, required this.title});
@@ -11,18 +15,52 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String _email = '';
-  String _password = '';
-  bool _passwordVisible = false;
-  bool rememberMe = false;
-  String emailError = '';
-  String passwordError = '';
-  TextEditingController _passwordController = TextEditingController();
+    bool rememberMe = false;
+    String emailError = '';
+    String passwordError = '';
+    TextEditingController _emailController = TextEditingController();
+    TextEditingController _passwordController = TextEditingController();
 
+loginPressed() async {
+  if (_emailController.text.isNotEmpty && _passwordController.text.isNotEmpty) {
+    try {
+      http.Response response = await AuthServices.login(
+        _emailController.text,
+        _passwordController.text,
+      );
+
+      Map responseMap = jsonDecode(response.body);
+
+      print("Server Response: $responseMap");
+
+      if (response.statusCode == 200) {
+        print("Before Navigator.push");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => const HomeScreen(),
+          ),
+        );
+        print("After Navigator.push");
+      } else {
+        errorSnackBar(context, responseMap['error'] ?? 'Login failed');
+      }
+    } catch (error, stackTrace) {
+      print("Error during login: $error");
+      print("Stack trace: $stackTrace");
+      errorSnackBar(context, 'An error occurred during login');
+    }
+  } else {
+    errorSnackBar(context, 'Enter all required fields');
+  }
+}
   @override
   void dispose() {
     _passwordController.dispose();
     super.dispose();
+
+   
+
   }
 
   @override
@@ -64,42 +102,29 @@ class _LoginScreenState extends State<LoginScreen> {
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 8),
-                    TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          errorText: emailError.isNotEmpty ? emailError : null,
-                        ),
-                        onChanged: (value) {
-                          _email = value;
-                        }),
+                  TextFormField(
+                      controller: _emailController,
+                      decoration: InputDecoration(labelText: 'Email'),
+                      validator: (_emailController) {
+                        if (_emailController == null || _emailController.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        // Add more complex email validation if needed
+                        return null;
+                      },
+                    ),
                     SizedBox(height: 8),
                     TextField(
                       controller: _passwordController,
+                      obscureText: true,
                       decoration: InputDecoration(
                         labelText: 'Password',
                         errorText:
                             passwordError.isNotEmpty ? passwordError : null,
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              // Toggle the visibility of the password
-                              _passwordVisible = !_passwordVisible;
-                            });
-                          },
-                          icon: Icon(
-                            _passwordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: Colors.grey,
-                          ),
-                        ),
+                        
                       ),
-                      obscureText: !_passwordVisible,
-                      onChanged: (value) {
-                        setState(() {
-                          _password = value; // Update _password on each change
-                        });
-                      },
+                    
+                     
                     ),
                     SizedBox(height: 8),
                     Row(
@@ -114,36 +139,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         Text('Remember Me'),
                         Spacer(),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Simple validation check
-                            setState(() {
-                              emailError = _email.isEmpty
-                                  ? 'Please enter your email.'
-                                  : '';
-                              passwordError = _password.isEmpty
-                                  ? 'Please enter your password.'
-                                  : '';
-                            });
-
-                            if (_email.isNotEmpty && _password.isNotEmpty) {
-                              // Proceed with login logic
-                              bool loginSuccessful = true;
-
-                              if (loginSuccessful) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => HomeScreen(),
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            primary: Colors.blue,
-                          ),
-                          child: Text('Login'),
+                        
+                           ElevatedButton(
+                           onPressed: (){
+                            loginPressed();
+                          }, // Directly pass the function reference
+                          child: Text('Log in'),
                         ),
                       ],
                     ),
