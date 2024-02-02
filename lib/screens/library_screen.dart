@@ -47,7 +47,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 //for Latest Issuances - API
   Future<void> fetchLatestIssuances() async {
     final response = await http.get(
-      Uri.parse('http://dilg.mdc-devs.com/api/latest_issuances'),
+      Uri.parse('https://dilg.mdc-devs.com/api/latest_issuances'),
       headers: {
         'Accept': 'application/json',
       },
@@ -69,7 +69,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   //for Joint Circulars API
   Future<void> fetchJointCirculars() async {
     final response = await http.get(
-      Uri.parse('http://dilg.mdc-devs.com/api/joint_circulars'),
+      Uri.parse('https://dilg.mdc-devs.com/api/joint_circulars'),
       headers: {
         'Accept': 'application/json',
       },
@@ -92,7 +92,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> fetchMemoCirculars() async {
     final response = await http.get(
-      Uri.parse('http://dilg.mdc-devs.com/api/memo_circulars'),
+      Uri.parse('https://dilg.mdc-devs.com/api/memo_circulars'),
       headers: {
         'Accept': 'application/json',
       },
@@ -114,7 +114,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   //for Presidential Directives API
   Future<void> fetchPresidentialCirculars() async {
     final response = await http.get(
-      Uri.parse('http://dilg.mdc-devs.com/api/presidential_directives'),
+      Uri.parse('https://dilg.mdc-devs.com/api/presidential_directives'),
       headers: {
         'Accept': 'application/json',
       },
@@ -143,7 +143,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   //for Memo Circular API
  Future<void> fetchDraftIssuances() async {
     final response = await http.get(
-      Uri.parse('http://dilg.mdc-devs.com/api/draft_issuances'),
+      Uri.parse('https://dilg.mdc-devs.com/api/draft_issuances'),
       headers: {
         'Accept': 'application/json',
       },
@@ -165,7 +165,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   //Republic Acts
  Future<void> fetchRepublicActs() async {
     final response = await http.get(
-      Uri.parse('http://dilg.mdc-devs.com/api/republic_acts'),
+      Uri.parse('https://dilg.mdc-devs.com/api/republic_acts'),
       headers: {
         'Accept': 'application/json',
       },
@@ -186,7 +186,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   Future<void> fetchLegalOpinion() async {
     final response = await http.get(
-      Uri.parse('http://dilg.mdc-devs.com/api/legal_opinions'),
+      Uri.parse('https://dilg.mdc-devs.com/api/legal_opinions'),
       headers: {
         'Accept': 'application/json',
       },

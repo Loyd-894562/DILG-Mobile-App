@@ -35,7 +35,7 @@ class DetailsScreen extends StatelessWidget {
                     title,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
+                      fontSize: 15,
                       color: Colors.black,
                     ),
                     textAlign: TextAlign.center,
@@ -50,7 +50,7 @@ class DetailsScreen extends StatelessWidget {
                 Text(
                   content,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 12,
                   ),
                   textAlign: TextAlign.center,
                 ),

@@ -14,12 +14,19 @@ class LatestIssuances extends StatefulWidget {
 class _LatestIssuancesState extends State<LatestIssuances> {
   List<LatestIssuance> _latestIssuances = [];
   List<LatestIssuance> get latestIssuances => _latestIssuances;
+   List<String> categories = [
+    'All Outcome Area',
+    'ACCOUNTABLE, TRANSPARENT, PARTICIPATIVE',
+    'AND EFFECTIVE LOCAL GOVERNANCE',
+    'PEACEFUL, ORDERLY AND SAFE LGUS STRATEGIC PRIORITIES',
+    'SOCIALLY PROTECTIVE LGUS',
+    'ENVIRONMENT-PROTECTIVE, CLIMATE CHANGE ADAPTIVE AND DISASTER RESILIENT LGUS',
+    'BUSINESS-FRIENDLY AND COMPETITIVE LGUS',
+    'STRENGTHENING OF INTERNAL GOVERNANCE'
+  ];
 
-  List<String> categories = ['Category 1', 'Category 2', 'Category 3'];
-  String selectedCategory = 'Category 1'; // Default selection
-//   String formatDate(String dateString) {
-//   return DateFormat('MMMM dd, yyyy').format(DateTime.parse(dateString));
-// }
+  String selectedCategory = 'All Outcome Area';// Default selection
+
 
 @override
   void initState() {
@@ -30,7 +37,7 @@ class _LatestIssuancesState extends State<LatestIssuances> {
 
  Future<void> fetchLatestIssuances() async {
     final response = await http.get(
-      Uri.parse('http://dilg.mdc-devs.com/api/latest_issuances'),
+      Uri.parse('https://dilg.mdc-devs.com/api/latest_issuances'),
       headers: {
         'Accept': 'application/json',
       },
@@ -85,44 +92,30 @@ class _LatestIssuancesState extends State<LatestIssuances> {
       child: Column(
         children: [
           // Filter Category Dropdown
-          Container(
-            margin: EdgeInsets.only(bottom: 8.0),
-            padding: EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Outcome Area/Program: ',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 8.0),
-                Container(
-                  margin: EdgeInsets.only(top: 8.0),
-                  padding: EdgeInsets.all(16.0),
-                  child: DropdownButton<String>(
-                    value: selectedCategory,
-                    onChanged: (String? newValue) {
-                      if (newValue != null) {
-                        setState(() {
-                          selectedCategory = newValue;
-                          // Call a method to fetch and display issuances based on the selected category
-                          // Example: fetchAndDisplayIssuances(selectedCategory);
-                        });
-                      }
-                    },
-                    items: categories
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ],
+         Container(
+            padding: EdgeInsets.all(16.0),
+            child: DropdownButton<String>(
+              value: selectedCategory,
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    selectedCategory = newValue;
+                  });
+                }
+              },
+              items: categories.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: selectedCategory == value
+                      ? Text(
+                          _truncateText(value, 30), // Adjust the maxLength as needed
+                          style: TextStyle(
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                      : Text(value),
+                );
+              }).toList(),
             ),
           ),
 
@@ -137,7 +130,7 @@ class _LatestIssuancesState extends State<LatestIssuances> {
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.grey[400]!),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               onChanged: (value) {
@@ -148,28 +141,32 @@ class _LatestIssuancesState extends State<LatestIssuances> {
 
           // Sample Table Section
           Container(
-            padding: EdgeInsets.all(16.0),
+            // padding: EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Latest',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
+                  // Add margin to the left
+                  textAlign: TextAlign.left,
+                  // Use the EdgeInsets.only to specify margin for specific sides
+                  // In this case, only the left margin is set to 3.0
+                  // margin: EdgeInsets.only(left: 3.0),
                 ),
+
                 SizedBox(height: 16.0),
                 for (int index = 0; index < _latestIssuances.length; index++)
               InkWell(
-                onTap: () {
-                  _navigateToDetailsPage(context, 'Row $index');
+               onTap: () {
+                  _navigateToDetailsPage(context, _latestIssuances[index]);
                 },
                 child: Card(
                   elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                 
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
@@ -224,22 +221,32 @@ class _LatestIssuancesState extends State<LatestIssuances> {
     );
   }
 
-  void _navigateToDetailsPage(BuildContext context, String content) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DetailsScreen(
-          title: 'Details',
-          content: content,
-        ),
+ void _navigateToDetailsPage(BuildContext context, LatestIssuance issuance) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => DetailsScreen(
+        title: issuance.issuance.title,
+        content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}',
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   void _navigateToSelectedPage(BuildContext context, int index) {
     // Handle navigation if needed
   }
 }
+
+ String _truncateText(String text, int maxLength) {
+    if (text.length <= maxLength) {
+      return text;
+    } else {
+      return text.substring(0, maxLength) + '...';
+    }
+  }
+
 
 //for Latest getters and setters
 class LatestIssuance {
