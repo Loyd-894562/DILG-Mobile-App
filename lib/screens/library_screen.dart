@@ -1,7 +1,4 @@
 import 'dart:convert';
-
-import 'package:DILGDOCS/Services/globals.dart';
-// import 'package:DILGDOCS/screens/joint_circulars.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 class LibraryScreen extends StatefulWidget {
@@ -11,20 +8,15 @@ class LibraryScreen extends StatefulWidget {
 
 class _LibraryScreenState extends State<LibraryScreen> {
   TextEditingController _searchController = TextEditingController();
-  
   List<LatestIssuance> _latestIssuances = [];
   List<JointCircular> _jointCirculars = [];
   List<MemoCircular> _memoCirculars = [];
   List<PresidentialDirective> _presidentialDirectives = [];
-    
-    // List<String> _presidentialDirectives =
-    //     List.generate(6, (index) => 'Presidential Directive $index');
-    List<String> _draftIssuances =
-        List.generate(6, (index) => 'Draft Issuance $index');
-    List<String> _republicActs =
-        List.generate(6, (index) => 'Republic Act $index');
-    List<String> _legalOpinions =
-        List.generate(6, (index) => 'Legal Opinion $index');
+  List<DraftIssuance> _draftIssuances = [];
+  List<RepublicAct> _republicActs = [];
+  List<LegalOpinion> _legalOpinions = [];
+    // List<String> _legalOpinions =
+    //     List.generate(6, (index) => 'Legal Opinion $index');
 
   String _selectedCategory = 'All';
   List<String> _categories = [
@@ -47,6 +39,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
     fetchJointCirculars();
     fetchMemoCirculars();
     fetchPresidentialCirculars();
+    fetchDraftIssuances();
+    fetchRepublicActs();
+    fetchLegalOpinion();
   }
 
 //for Latest Issuances - API
@@ -65,8 +60,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       });
     } else {
       // Handle error
-      print('Failed to load latest issuances');
-            
+      print('Failed to load latest issuances');     
       print('Response status code: ${response.statusCode}');
       print('Response body: ${response.body}');
     }
@@ -95,30 +89,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
   }
 
-  //for Presidential Directives API
-  Future<void> fetchPresidentialCirculars() async {
-    final response = await http.get(
-      Uri.parse('http://dilg.mdc-devs.com/api/presidential_directives'),
-      headers: {
-        'Accept': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body)['presidentials'];
-
-      setState(() {
-        _presidentialDirectives = data.map((item) => PresidentialDirective.fromJson(item)).toList();
-      });
-    } else {
-      // Handle error
-      print('Failed to load latest issuances');
-            
-      print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-    }
-  }
-
-  //for Memo Circular API
 
   Future<void> fetchMemoCirculars() async {
     final response = await http.get(
@@ -141,6 +111,99 @@ class _LibraryScreenState extends State<LibraryScreen> {
       print('Response body: ${response.body}');
     }
   }
+  //for Presidential Directives API
+  Future<void> fetchPresidentialCirculars() async {
+    final response = await http.get(
+      Uri.parse('http://dilg.mdc-devs.com/api/presidential_directives'),
+      headers: {
+        'Accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic>? data = json.decode(response.body)['presidentials'];
+
+      if (data != null) {
+        print('Presidential Directives Data: $data');
+
+        setState(() {
+          _presidentialDirectives = data.map((item) => PresidentialDirective.fromJson(item)).toList();
+        });
+      } else {
+        print('Presidential Directives Data is null');
+      }
+    } else {
+  // Handle error
+      print('Failed to load latest issuances'); 
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+
+  }
+
+  //for Memo Circular API
+ Future<void> fetchDraftIssuances() async {
+    final response = await http.get(
+      Uri.parse('http://dilg.mdc-devs.com/api/draft_issuances'),
+      headers: {
+        'Accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body)['drafts'];
+      setState(() {
+        _draftIssuances = data.map((item) => DraftIssuance.fromJson(item)).toList();
+      });
+    } else {
+      // Handle error
+      print('Failed to load Draft issuances');
+            
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
+
+  //Republic Acts
+ Future<void> fetchRepublicActs() async {
+    final response = await http.get(
+      Uri.parse('http://dilg.mdc-devs.com/api/republic_acts'),
+      headers: {
+        'Accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body)['republics'];
+      setState(() {
+        _republicActs = data.map((item) => RepublicAct.fromJson(item)).toList();
+      });
+    } else {
+      // Handle error
+      print('Failed to load Republic Acts');
+            
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
+
+  Future<void> fetchLegalOpinion() async {
+    final response = await http.get(
+      Uri.parse('http://dilg.mdc-devs.com/api/legal_opinions'),
+      headers: {
+        'Accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body)['legals'];
+      setState(() {
+        _legalOpinions = data.map((item) => LegalOpinion.fromJson(item)).toList();
+      });
+    } else {
+      // Handle error
+      print('Failed to load Republic Acts');
+            
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,11 +219,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
               _buildLatestSection('Latest Issuances', _latestIssuances),
               _buildJointSection('Joint Circulars', _jointCirculars),
               _buildMemoSection('Memo Circulars', _memoCirculars),
-              _buildPresidentialSection('Memo Circulars', _presidentialDirectives),
-              // _buildSection('Presidential Directives', _presidentialDirectives),
-              // _buildSection('Draft Issuances', _draftIssuances),
-              // _buildSection('Republic Acts', _republicActs),
-              // _buildSection('Legal Opinions', _legalOpinions),
+              _buildPresidentialSection('Presidential Directives', _presidentialDirectives),
+              _buildDraftSection('Draft Issuances', _draftIssuances),
+              _buildRepublicSection('Republic Acts', _republicActs),
+              _buildLegalOpinion('Legal Opinions', _legalOpinions),
             ],
           ),
         ),
@@ -224,11 +286,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       ],
     );
   }
-
-  
-
-  // Updated _buildSection method to filter items based on selected category and search query
-  // Updated _buildSection method to filter items based on selected category and search query
+//Latest Issuances
   Widget _buildLatestSection(String title, List<LatestIssuance> items) {
     // Filter items based on selected category and search query
             
@@ -274,9 +332,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       Text(
                         'Title: ${filteredItems[index].issuance.title}',
                         style: TextStyle(
-                          overflow: TextOverflow.ellipsis,
-                         
-                        ),
+                          overflow: TextOverflow.ellipsis),
                       ),
                       Text('Category: ${filteredItems[index].category}'),
                       Text('Outcome: ${filteredItems[index].outcome}',
@@ -287,7 +343,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       Text('Issuance Date: ${filteredItems[index].issuance.date}'),
                       Text('Reference No: ${filteredItems[index].issuance.referenceNo}'),
                       Text('Url Link: ${filteredItems[index].issuance.urlLink}'),
-                      // ...
+                    
                     ],
                   ),
                 ),
@@ -430,35 +486,32 @@ class _LibraryScreenState extends State<LibraryScreen> {
     } 
   }
 
-
-   Widget _buildPresidentialSection(String title, List<PresidentialDirective> items) {
-  // filter MemoCicrulars even if the responsible office is empty
-     List<PresidentialDirective> filteredItems = items
+  Widget _buildPresidentialSection(String title, List<PresidentialDirective> items) {
+  // filter P even if the responsible office is empty
+  List<PresidentialDirective> filteredItems = items
     .where((item) =>
-        (_selectedCategory == 'All' || item.responsible_office == _selectedCategory) ||
-        (item.responsible_office.isEmpty))
+        _selectedCategory == 'All' || item.responsible_office == _selectedCategory)
     .toList();
 
-
-    if (filteredItems.isEmpty) {
-      return Container(
-        alignment: Alignment.center,
-        child: Text('No data available'),
-      );
-    } else {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+  if (filteredItems.isEmpty) {
+    return Container(
+      alignment: Alignment.center,
+      child: Text('No data available'),
+    );
+  } else {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(height: 16),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
-          SizedBox(height: 8),
-          Container(
+        ),
+        SizedBox(height: 8),
+        Container(
             height: 200,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
@@ -489,10 +542,198 @@ class _LibraryScreenState extends State<LibraryScreen> {
               },
             ),
           ),
-        ],
-      );
-    } 
+      ],
+    );
   }
+}
+
+Widget _buildDraftSection(String title, List<DraftIssuance> items) {
+  // filter P even if the responsible office is empty
+  List<DraftIssuance> filteredItems = items
+    .where((item) =>
+      (_selectedCategory == 'All' || item.responsible_office == _selectedCategory) ||
+      (item.responsible_office.isEmpty))
+    .toList();
+
+  if (filteredItems.isEmpty) {
+    return Container(
+      alignment: Alignment.center,
+      child: Text('No data available'),
+    );
+  } else {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(height: 16),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 8),
+       Container(
+            height: 200,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: filteredItems.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.symmetric(horizontal: 8),
+                  child: Container(
+                    width: 300,
+                    padding: EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Text('ID: ${filteredItems[index].id}'),
+                        Text('Title: ${filteredItems[index].issuance.title}',
+                          style: TextStyle(
+                          overflow: TextOverflow.ellipsis,  
+                          ),
+                        ),
+                        Text('Responsible Office: ${filteredItems[index].responsible_office ?? 'N/A'}'),
+                        Text('Issuance Date: ${filteredItems[index].issuance.date}'),
+                        Text('Reference No: ${filteredItems[index].issuance.referenceNo}'),
+                        Text('Url Link: ${filteredItems[index].issuance.urlLink}'),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+//Republic 
+Widget _buildRepublicSection(String title, List<RepublicAct> items) {
+  // filter P even if the responsible office is empty
+  List<RepublicAct> filteredItems = items
+    .where((item) =>
+      (_selectedCategory == 'All' || item.responsible_office == _selectedCategory) ||
+      (item.responsible_office.isEmpty))
+    .toList();
+
+  if (filteredItems.isEmpty) {
+    return Container(
+      alignment: Alignment.center,
+      child: Text('No data available'),
+    );
+  } else {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(height: 16),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 8),
+       Container(
+            height: 200,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: filteredItems.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.symmetric(horizontal: 8),
+                  child: Container(
+                    width: 300,
+                    padding: EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Text('ID: ${filteredItems[index].id}'),
+                        Text('Title: ${filteredItems[index].issuance.title}',
+                          style: TextStyle(
+                          overflow: TextOverflow.ellipsis,  
+                          ),
+                        ),
+                        Text('Responsible Office: ${filteredItems[index].responsible_office ?? 'N/A'}'),
+                        Text('Issuance Date: ${filteredItems[index].issuance.date}'),
+                        Text('Reference No: ${filteredItems[index].issuance.referenceNo}'),
+                        Text('Url Link: ${filteredItems[index].issuance.urlLink}'),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+
+// Legal Opinion
+Widget _buildLegalOpinion(String title, List<LegalOpinion> items) {
+  // filter P even if the responsible office is empty
+  List<LegalOpinion> filteredItems = items
+    .where((item) =>
+      (_selectedCategory == 'All' || item.category == _selectedCategory))
+    .toList();
+
+  if (filteredItems.isEmpty) {
+    return Container(
+      alignment: Alignment.center,
+      child: Text('No data available'),
+    );
+  } else {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(height: 16),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 8),
+       Container(
+            height: 200,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: filteredItems.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.symmetric(horizontal: 8),
+                  child: Container(
+                    width: 300,
+                    padding: EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Text('ID: ${filteredItems[index].id}'),
+                        Text('Title: ${filteredItems[index].issuance.title}',
+                          style: TextStyle(
+                          overflow: TextOverflow.ellipsis,  
+                          ),
+                        ),
+                        Text('Category: ${filteredItems[index].category ?? 'N/A'}'),
+                        Text('Issuance Date: ${filteredItems[index].issuance.date}'),
+                        Text('Reference No: ${filteredItems[index].issuance.referenceNo}'),
+                        Text('Url Link: ${filteredItems[index].issuance.urlLink}'),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
 }
 
 //for Latest getters and setters
@@ -544,7 +785,7 @@ class JointCircular {
   }
 }
 
-//for MemoCicular
+//for MemoCircular
 class MemoCircular {
   final int id;
   final String responsible_office;
@@ -569,21 +810,83 @@ class MemoCircular {
 //for Presidential Directives
 
 class PresidentialDirective {
-  final int id;
-  final String responsible_office;
+   final int id;
+   final String responsible_office;
    final Issuance issuance;
 
-  PresidentialDirective({
+PresidentialDirective({
     required this.id,
     required this.responsible_office,
-   required this.issuance,
+    required this.issuance,
    
   });
 
   factory PresidentialDirective.fromJson(Map<String, dynamic> json) {
     return PresidentialDirective(
       id: json['id'],
+      responsible_office: json['responsible_office'] ?? 'N/A', 
+      issuance: Issuance.fromJson(json['issuance']),
+    );
+  }
+}
+
+class DraftIssuance {
+   final int id;
+   final String responsible_office;
+   final Issuance issuance;
+
+DraftIssuance({
+    required this.id,
+    required this.responsible_office,
+    required this.issuance,
+   
+  });
+
+  factory DraftIssuance.fromJson(Map<String, dynamic> json) {
+    return DraftIssuance(
+      id: json['id'],
       responsible_office: json['responsible_office'], 
+      issuance: Issuance.fromJson(json['issuance']),
+    );
+  }
+}
+
+//for Republic Acts 
+class RepublicAct {
+   final int id;
+   final String responsible_office;
+   final Issuance issuance;
+
+RepublicAct({
+    required this.id,
+    required this.responsible_office,
+    required this.issuance,
+  });
+
+  factory RepublicAct.fromJson(Map<String, dynamic> json) {
+    return RepublicAct(
+      id: json['id'],
+      responsible_office: json['responsible_office'] ?? 'N/A', 
+      issuance: Issuance.fromJson(json['issuance']),
+    );
+  }
+}
+
+class LegalOpinion {
+  final int id;
+  final String category;
+  final Issuance issuance;
+
+  LegalOpinion({
+    required this.id,
+    required this.category,
+    required this.issuance,
+  });
+
+  factory LegalOpinion.fromJson(Map<String, dynamic> json) {
+    return LegalOpinion(
+      id: json['id'],
+      category: json['category'] ?? 'N/A',
       issuance: Issuance.fromJson(json['issuance']),
     );
   }
