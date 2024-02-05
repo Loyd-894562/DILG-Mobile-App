@@ -222,16 +222,19 @@ class _LatestIssuancesState extends State<LatestIssuances> {
   }
 
  void _navigateToDetailsPage(BuildContext context, LatestIssuance issuance) {
+  print('PDF URL: ${issuance.issuance.urlLink}');
   Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) => DetailsScreen(
         title: issuance.issuance.title,
         content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}',
+        pdfUrl: issuance.issuance.urlLink,
       ),
     ),
   );
 }
+
 
 
   void _navigateToSelectedPage(BuildContext context, int index) {

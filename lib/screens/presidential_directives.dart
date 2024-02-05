@@ -115,7 +115,7 @@ class _PresidentialDirectivesState extends State<PresidentialDirectives> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Memo Circulars',
+                  'Presidential Directives',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -204,8 +204,8 @@ class _PresidentialDirectivesState extends State<PresidentialDirectives> {
     MaterialPageRoute(
       builder: (context) => DetailsScreen(
         title: issuance.issuance.title,
-       content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))} \n \n ${issuance.responsible_office}',
-
+        content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))} \n \n ${issuance.responsible_office}',
+        pdfUrl: issuance.issuance.urlLink 
       ),
     ),
   );

@@ -128,46 +128,39 @@ class _MemoCircularsState extends State<MemoCirculars> {
                 },
                 child: Card(
                   elevation: 4,
-                 
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Icon(Icons.article, color: Colors.blue[900]),
-                        SizedBox(width: 16.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _memoCirculars[index].issuance.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              SizedBox(height: 4.0),
-                              Text(
-                                'Ref #${_memoCirculars[index].issuance.referenceNo}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              Text(
-                                'Ref #${_memoCirculars[index].responsible_office}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: Icon(Icons.article, color: Colors.blue[900]),
+                        title: Text(
+                          _memoCirculars[index].issuance.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
                           ),
                         ),
-                        SizedBox(width: 16.0),
-                        Text(
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Ref #${_memoCirculars[index].issuance.referenceNo}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              'Ref #${_memoCirculars[index].responsible_office}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: Text(
                           DateFormat('MMMM dd, yyyy').format(
                             DateTime.parse(_memoCirculars[index].issuance.date),
                           ),
@@ -175,11 +168,16 @@ class _MemoCircularsState extends State<MemoCirculars> {
                             fontSize: 12,
                           ),
                         ),
-                        
-                      ],
-                    ),
-                  ),
-                ),
+                      ),
+                      Divider(
+                            color: Colors.grey[400],
+                            height: 0,
+                            thickness: 1,
+                          ),
+                        ],
+                      ),
+                    )
+
               ),
 
               ],
@@ -197,8 +195,8 @@ class _MemoCircularsState extends State<MemoCirculars> {
     MaterialPageRoute(
       builder: (context) => DetailsScreen(
         title: issuance.issuance.title,
-       content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))} \br \br ${issuance.responsible_office}',
-
+        content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))} \br \br ${issuance.responsible_office}',
+        pdfUrl: issuance.issuance.urlLink 
       ),
     ),
   );

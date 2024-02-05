@@ -78,13 +78,14 @@ class _LegalOpinionsState extends State<LegalOpinions> {
           // Search Input
           Container(
             margin: EdgeInsets.only(bottom: 8.0),
-            padding: EdgeInsets.all(12.0),
+            padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0), // Adjust padding
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey[400]!),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12), // Adjust borderRadius
             ),
             child: TextField(
               controller: searchController,
+              style: TextStyle(fontSize: 14), // Adjust fontSize
               decoration: InputDecoration(
                 hintText: 'Search...',
                 border: InputBorder.none,
@@ -96,26 +97,11 @@ class _LegalOpinionsState extends State<LegalOpinions> {
             ),
           ),
 
-          // Category Dropdown
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Title/Subject: ',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 8.0),
-                
-              ],
-            ),
-          ),
 
-          SizedBox(height: 16.0),
+          // Category Dropdown
+          
+
+          // SizedBox(height: 15.0),
 
           // Sample Table Section
           Container(
@@ -176,7 +162,7 @@ class _LegalOpinionsState extends State<LegalOpinions> {
                                     _legalOpinions[index].issuance.date),
                               ),
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                               ),
                             ),
                           ],
@@ -199,6 +185,7 @@ class _LegalOpinionsState extends State<LegalOpinions> {
       builder: (context) => DetailsScreen(
         title: issuance.issuance.title,
         content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}',
+        pdfUrl: issuance.issuance.urlLink 
       ),
     ),
   );

@@ -36,8 +36,8 @@ dependencies:
   path: ^1.8.3
   path_provider: ^2.1.2
   url_launcher: ^6.2.4
-
-  
+  webview_flutter: ^3.0.0
+  flutter_pdfview: ^1.0.2
   
 
 

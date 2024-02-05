@@ -187,6 +187,7 @@ class _RepublicActsState extends State<RepublicActs> {
       builder: (context) => DetailsScreen(
         title: issuance.issuance.title,
         content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}',
+        pdfUrl: issuance.issuance.urlLink 
       ),
     ),
   );
