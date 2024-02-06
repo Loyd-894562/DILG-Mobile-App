@@ -150,6 +150,7 @@ class _LatestIssuancesState extends State<LatestIssuances> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    
                   ),
                   // Add margin to the left
                   textAlign: TextAlign.left,
@@ -158,17 +159,26 @@ class _LatestIssuancesState extends State<LatestIssuances> {
                   // margin: EdgeInsets.only(left: 3.0),
                 ),
 
+
                 SizedBox(height: 16.0),
                 for (int index = 0; index < _latestIssuances.length; index++)
               InkWell(
                onTap: () {
                   _navigateToDetailsPage(context, _latestIssuances[index]);
                 },
+                 child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom:
+                            BorderSide(color: const Color.fromARGB(255, 203, 201, 201), width: 1.0),
+                      ),
+                    ),
+             
                 child: Card(
-                  elevation: 4,
-                 
+                  elevation: 0,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
+                    
                     child: Row(
                       children: [
                         Icon(Icons.article, color: Colors.blue[900]),
@@ -176,6 +186,7 @@ class _LatestIssuancesState extends State<LatestIssuances> {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            
                             children: [
                               Text(
                                 _latestIssuances[index].issuance.title,
@@ -212,10 +223,12 @@ class _LatestIssuancesState extends State<LatestIssuances> {
                   ),
                 ),
               ),
+              ),
 
               ],
             ),
           ),
+          
         ],
       ),
     );
