@@ -30,5 +30,3 @@ class DownloadedFilesScreen extends StatelessWidget {
     );
   }
 }
-
-
