@@ -126,8 +126,15 @@ class _MemoCircularsState extends State<MemoCirculars> {
                onTap: () {
                   _navigateToDetailsPage(context, _memoCirculars[index]);
                 },
+                // child: Container(
+                //     decoration: BoxDecoration(
+                //       border: Border(
+                //         bottom:
+                //             BorderSide(color: const Color.fromARGB(255, 203, 201, 201), width: 1.0),
+                //       ),
+                //     ),
                 child: Card(
-                  elevation: 4,
+                  elevation: 0,
                   child: Column(
                     children: [
                       ListTile(
@@ -179,7 +186,7 @@ class _MemoCircularsState extends State<MemoCirculars> {
                     )
 
               ),
-
+              // ),
               ],
             ),
           ),

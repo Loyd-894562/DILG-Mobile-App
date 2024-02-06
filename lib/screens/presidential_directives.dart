@@ -133,8 +133,15 @@ class _PresidentialDirectivesState extends State<PresidentialDirectives> {
                onTap: () {
                   _navigateToDetailsPage(context, _presidentialDirectives[index]);
                 },
+                child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom:
+                            BorderSide(color: const Color.fromARGB(255, 203, 201, 201), width: 1.0),
+                      ),
+                    ),
                 child: Card(
-                  elevation: 4,
+                  elevation: 0,
                  
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -187,6 +194,7 @@ class _PresidentialDirectivesState extends State<PresidentialDirectives> {
                     ),
                   ),
                 ),
+              ),
               ),
 
               ],

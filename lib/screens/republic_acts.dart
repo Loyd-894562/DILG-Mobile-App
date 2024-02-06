@@ -124,7 +124,7 @@ class _RepublicActsState extends State<RepublicActs> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Latest',
+                  'Republic Acts',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -136,8 +136,15 @@ class _RepublicActsState extends State<RepublicActs> {
                     onTap: () {
                       _navigateToDetailsPage(context, _republicActs[index]);
                     },
+                    child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom:
+                            BorderSide(color: const Color.fromARGB(255, 203, 201, 201), width: 1.0),
+                      ),
+                    ),
                     child: Card(
-                      elevation: 4,
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -171,6 +178,7 @@ class _RepublicActsState extends State<RepublicActs> {
                         ),
                       ),
                     ),
+                  ),
                   ),
               ],
             ),

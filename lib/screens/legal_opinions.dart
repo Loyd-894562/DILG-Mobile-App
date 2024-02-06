@@ -110,7 +110,7 @@ class _LegalOpinionsState extends State<LegalOpinions> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Latest',
+                  'Legal Opinions',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -122,8 +122,15 @@ class _LegalOpinionsState extends State<LegalOpinions> {
                     onTap: () {
                       _navigateToDetailsPage(context, _legalOpinions[index]);
                     },
+                    child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom:
+                            BorderSide(color: const Color.fromARGB(255, 203, 201, 201), width: 1.0),
+                      ),
+                    ),
                     child: Card(
-                      elevation: 4,
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -168,6 +175,7 @@ class _LegalOpinionsState extends State<LegalOpinions> {
                           ],
                         ),
                       ),
+                    ),
                     ),
                   ),
               ],

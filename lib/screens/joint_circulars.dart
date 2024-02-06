@@ -126,8 +126,16 @@ class _JointCircularsState extends State<JointCirculars> {
                onTap: () {
                   _navigateToDetailsPage(context, _jointCirculars[index]);
                 },
+                 child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom:
+                            BorderSide(color: const Color.fromARGB(255, 203, 201, 201), width: 1.0),
+                      ),
+                    ),
+                
                 child: Card(
-                  elevation: 4,
+                  elevation: 0,
                  
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -181,7 +189,7 @@ class _JointCircularsState extends State<JointCirculars> {
                   ),
                 ),
               ),
-
+              ),
               ],
             ),
           ),

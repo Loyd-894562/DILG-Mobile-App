@@ -243,7 +243,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               overflow: TextOverflow.ellipsis, 
             ),
           ),
-        SizedBox(height: 8),
+        SizedBox(height: 10),
         if (downloadedFiles.isNotEmpty)
           Wrap(
             spacing: 8.0,
