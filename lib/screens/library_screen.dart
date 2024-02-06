@@ -16,7 +16,7 @@ class LibraryScreen extends StatefulWidget {
 
 class _LibraryScreenState extends State<LibraryScreen> {
   TextEditingController _searchController = TextEditingController();
-  List<LatestIssuance> _latestIssuances = [];
+
  List<String> downloadedFiles = [];
 
 
@@ -38,7 +38,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   @override
   void initState() {
     super.initState();
-    fetchLatestIssuances();
+    
     loadDownloadedFiles();
     // fetchJointCirculars();
     // fetchMemoCirculars();
@@ -64,26 +64,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     });
   }
 //for Latest Issuances - API
-  Future<void> fetchLatestIssuances() async {
-    final response = await http.get(
-      Uri.parse('https://dilg.mdc-devs.com/api/latest_issuances'),
-      headers: {
-        'Accept': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body)['latests'];
-
-      setState(() {
-        _latestIssuances = data.map((item) => LatestIssuance.fromJson(item)).toList();
-      });
-    } else {
-      // Handle error
-      print('Failed to load latest issuances');     
-      print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-    }
-  }
+  
 
 
   @override
@@ -92,12 +73,21 @@ class _LibraryScreenState extends State<LibraryScreen> {
       body: SingleChildScrollView(
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
+<<<<<<< HEAD
+           children: [
+              _buildSearchAndFilterRow(),
+              // Use a common method to build each section
+              
+              _buildPdf(context), // Corrected this line
+            ],
+=======
             children: [
                 _buildSearchAndFilterRow(),
                 // Use a common method to build each section
                 // _buildLatestSection('Latest Issuances', _latestIssuances),
                 _buildPdf(context), // Corrected this line
               ],
+>>>>>>> cb6143bdbaedbe0b95d462671d3f39ca613ec63a
 
             ),
           ),
@@ -161,6 +151,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 //Latest Issuances
+<<<<<<< HEAD
+ 
+=======
   // Widget _buildLatestSection(String title, List<LatestIssuance> items) {
   //   // Filter items based on selected category and search query
             
@@ -229,11 +222,31 @@ class _LibraryScreenState extends State<LibraryScreen> {
   //     ],
   //   );
   // }
+>>>>>>> cb6143bdbaedbe0b95d462671d3f39ca613ec63a
   Widget _buildPdf(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+<<<<<<< HEAD
+        // ElevatedButton(
+        //   onPressed: () {
+        //     // Open the first downloaded file if available
+        //     if (downloadedFiles.isNotEmpty) {
+        //       openPdfViewer(context, downloadedFiles[0]);
+        //     } else {
+        //       ScaffoldMessenger.of(context).showSnackBar(
+        //         SnackBar(
+        //           content: Text('No downloaded files available.'),
+        //         ),
+        //       );
+        //     }
+        //   },
+        //   child: Text('View Downloaded Files'),
+        // ),
+        // SizedBox(height: 16),
+=======
         SizedBox(height: 16),
+>>>>>>> cb6143bdbaedbe0b95d462671d3f39ca613ec63a
         if (downloadedFiles.isNotEmpty)
           Text(
             'Downloaded Files:',
