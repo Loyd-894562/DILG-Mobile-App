@@ -66,7 +66,7 @@ class _DraftIssuancesState extends State<DraftIssuances> {
       drawer: Sidebar(
         currentIndex: 1,
         onItemSelected: (index) {
-          _navigateToSelectedPage(context, index);
+          // _navigateToSelectedPage(context, index);
         },
       ),
     );
@@ -203,9 +203,9 @@ class _DraftIssuancesState extends State<DraftIssuances> {
 }
 
 
-  void _navigateToSelectedPage(BuildContext context, int index) {
-    // Handle navigation if needed
-  }
+  // void _navigateToSelectedPage(BuildContext context, int index) {
+  //   // Handle navigation if needed
+  // }
 }
 class DraftIssuance {
    final int id;

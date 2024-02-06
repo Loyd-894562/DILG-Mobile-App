@@ -1,14 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'downloadedfile_screen.dart';
 import 'dart:io'; // Import 'dart:io' for File and Directory
 import 'package:path_provider/path_provider.dart'; // Import 'package:path_provider/path_provider.dart' for getApplicationDocumentsDirectory
-import 'package:http/http.dart' as http;
-
-import 'package:flutter/material.dart';
-// import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:http/http.dart' as http;
 class LibraryScreen extends StatefulWidget {
   @override
   _LibraryScreenState createState() => _LibraryScreenState();
@@ -40,12 +33,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     super.initState();
     
     loadDownloadedFiles();
-    // fetchJointCirculars();
-    // fetchMemoCirculars();
-    // fetchPresidentialCirculars();
-    // fetchDraftIssuances();
-    // fetchRepublicActs();
-    // fetchLegalOpinion();
+
   }
 
  Future<void> loadDownloadedFiles() async {
@@ -73,21 +61,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
       body: SingleChildScrollView(
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-<<<<<<< HEAD
+
            children: [
               _buildSearchAndFilterRow(),
               // Use a common method to build each section
               
               _buildPdf(context), // Corrected this line
             ],
-=======
-            children: [
-                _buildSearchAndFilterRow(),
-                // Use a common method to build each section
-                // _buildLatestSection('Latest Issuances', _latestIssuances),
-                _buildPdf(context), // Corrected this line
-              ],
->>>>>>> cb6143bdbaedbe0b95d462671d3f39ca613ec63a
+
 
             ),
           ),
@@ -150,103 +131,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
       ],
     );
   }
-//Latest Issuances
-<<<<<<< HEAD
- 
-=======
-  // Widget _buildLatestSection(String title, List<LatestIssuance> items) {
-  //   // Filter items based on selected category and search query
-            
-  //     List<LatestIssuance> filteredItems = items
-  //           .where((item) =>
-  //               (_selectedCategory == 'All' || item.category == _selectedCategory) &&
-  //               (item.outcome.toLowerCase().contains(_searchController.text.toLowerCase())))
-  //           .toList();
 
-  //           if (filteredItems.isEmpty) {
-  //           return Container(
-  //             alignment: Alignment.center,
-  //             child: Text('No data available'),
-  //           );
-  //     }
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.stretch,
-  //     children: [
-  //       SizedBox(height: 16),
-  //       Text(
-  //         title,
-  //         style: TextStyle(
-  //           fontSize: 18,
-  //           fontWeight: FontWeight.bold,
-  //         ),
-  //       ),
-  //       SizedBox(height: 8),
-  //       Container(
-  //         height: 200,
-  //         child: ListView.builder(
-  //           scrollDirection: Axis.horizontal,
-  //           itemCount: filteredItems.length,
-  //           itemBuilder: (context, index) {
-  //             return Card(
-  //               margin: EdgeInsets.symmetric(horizontal: 8),
-  //               child: Container(
-  //                 width: 300,
-  //                 padding: EdgeInsets.all(8),
-  //                 child: Column(
-  //                   crossAxisAlignment: CrossAxisAlignment.start,
-  //                   children: [
-  //                     // Text('ID: ${filteredItems[index].id}'),
-  //                     Text(
-  //                       'Title: ${filteredItems[index].issuance.title}',
-  //                       style: TextStyle(
-  //                         overflow: TextOverflow.ellipsis),
-  //                     ),
-  //                     Text('Category: ${filteredItems[index].category}'),
-  //                     Text('Outcome: ${filteredItems[index].outcome}',
-  //                       style: TextStyle(
-  //                         overflow: TextOverflow.ellipsis,                     
-  //                       )
-  //                     ),
-  //                     Text('Issuance Date: ${filteredItems[index].issuance.date}'),
-  //                     Text('Reference No: ${filteredItems[index].issuance.referenceNo}'),
-  //                     Text('Url Link: ${filteredItems[index].issuance.urlLink}'),
-                    
-  //                   ],
-  //                 ),
-  //               ),
-  //             );
-  //           },
-  //         ),
-  //       ),
-        
-  //     ],
-  //   );
-  // }
->>>>>>> cb6143bdbaedbe0b95d462671d3f39ca613ec63a
   Widget _buildPdf(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-<<<<<<< HEAD
-        // ElevatedButton(
-        //   onPressed: () {
-        //     // Open the first downloaded file if available
-        //     if (downloadedFiles.isNotEmpty) {
-        //       openPdfViewer(context, downloadedFiles[0]);
-        //     } else {
-        //       ScaffoldMessenger.of(context).showSnackBar(
-        //         SnackBar(
-        //           content: Text('No downloaded files available.'),
-        //         ),
-        //       );
-        //     }
-        //   },
-        //   child: Text('View Downloaded Files'),
-        // ),
-        // SizedBox(height: 16),
-=======
+
         SizedBox(height: 16),
->>>>>>> cb6143bdbaedbe0b95d462671d3f39ca613ec63a
+
         if (downloadedFiles.isNotEmpty)
           Text(
             'Downloaded Files:',

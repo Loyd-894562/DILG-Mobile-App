@@ -97,23 +97,7 @@ class _RepublicActsState extends State<RepublicActs> {
           ),
 
           // Category Dropdown
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Title/Subject: ',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 8.0),
-                
-              ],
-            ),
-          ),
+          
 
           SizedBox(height: 16.0),
 
@@ -124,9 +108,9 @@ class _RepublicActsState extends State<RepublicActs> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Latest',
+                  'Republic Acts',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
