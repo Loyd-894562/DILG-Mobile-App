@@ -73,21 +73,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
       body: SingleChildScrollView(
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-<<<<<<< HEAD
+
            children: [
               _buildSearchAndFilterRow(),
               // Use a common method to build each section
               
               _buildPdf(context), // Corrected this line
             ],
-=======
-            children: [
-                _buildSearchAndFilterRow(),
-                // Use a common method to build each section
-                // _buildLatestSection('Latest Issuances', _latestIssuances),
-                _buildPdf(context), // Corrected this line
-              ],
->>>>>>> cb6143bdbaedbe0b95d462671d3f39ca613ec63a
+           
+
 
             ),
           ),
@@ -151,9 +145,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 //Latest Issuances
-<<<<<<< HEAD
- 
-=======
   // Widget _buildLatestSection(String title, List<LatestIssuance> items) {
   //   // Filter items based on selected category and search query
             
@@ -222,31 +213,29 @@ class _LibraryScreenState extends State<LibraryScreen> {
   //     ],
   //   );
   // }
->>>>>>> cb6143bdbaedbe0b95d462671d3f39ca613ec63a
+ 
   Widget _buildPdf(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-<<<<<<< HEAD
-        // ElevatedButton(
-        //   onPressed: () {
-        //     // Open the first downloaded file if available
-        //     if (downloadedFiles.isNotEmpty) {
-        //       openPdfViewer(context, downloadedFiles[0]);
-        //     } else {
-        //       ScaffoldMessenger.of(context).showSnackBar(
-        //         SnackBar(
-        //           content: Text('No downloaded files available.'),
-        //         ),
-        //       );
-        //     }
-        //   },
-        //   child: Text('View Downloaded Files'),
-        // ),
-        // SizedBox(height: 16),
-=======
+
         SizedBox(height: 16),
->>>>>>> cb6143bdbaedbe0b95d462671d3f39ca613ec63a
+
+        if(downloadedFiles.isEmpty)
+          Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'No downloaded issuances',
+                    style: TextStyle(
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+          ),
         if (downloadedFiles.isNotEmpty)
           Text(
             'Downloaded Files:',

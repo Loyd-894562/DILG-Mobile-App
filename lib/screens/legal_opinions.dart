@@ -193,7 +193,9 @@ class _LegalOpinionsState extends State<LegalOpinions> {
       builder: (context) => DetailsScreen(
         title: issuance.issuance.title,
         content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}',
-        pdfUrl: issuance.issuance.urlLink 
+        pdfUrl: issuance.issuance.urlLink, 
+         type: getTypeForDownload(issuance.issuance.type),
+       
       ),
     ),
   );
@@ -229,6 +231,7 @@ class Issuance {
   final String referenceNo;
   final String keyword;
   final String urlLink;
+  final String type;
 
   Issuance({
     required this.id,
@@ -237,6 +240,7 @@ class Issuance {
     required this.referenceNo,
     required this.keyword,
     required this.urlLink,
+    required this.type,
   });
 
   factory Issuance.fromJson(Map<String, dynamic> json) {
@@ -247,6 +251,30 @@ class Issuance {
       referenceNo: json['reference_no'],
       keyword: json['keyword'],
       urlLink: json['url_link'],
+      type: json['type'],
     );
+  }
+}
+
+String getTypeForDownload(String issuanceType) {
+  // Map issuance types to corresponding download types
+  switch (issuanceType) {
+    case 'Latest Issuance':
+      return 'Latest Issuance';
+    case 'Joint Circular':
+      return 'Joint Circular';
+    case 'Memo Circular':
+      return 'Memo Circular';
+     case 'Presidential Directives':
+      return 'Presidential Directives';  
+     case 'Draft Issuances':
+      return 'Draft Issuances';  
+     case 'Republic Acts':
+      return 'Republic Acts';  
+     case 'Legal Opinions':
+      return 'Legal Opinions';  
+  
+    default:
+      return 'Other';
   }
 }
