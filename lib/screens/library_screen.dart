@@ -1,7 +1,14 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'downloadedfile_screen.dart';
 import 'dart:io'; // Import 'dart:io' for File and Directory
 import 'package:path_provider/path_provider.dart'; // Import 'package:path_provider/path_provider.dart' for getApplicationDocumentsDirectory
+import 'package:http/http.dart' as http;
+
+import 'package:flutter/material.dart';
+// import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:http/http.dart' as http;
 class LibraryScreen extends StatefulWidget {
   @override
   _LibraryScreenState createState() => _LibraryScreenState();
@@ -33,7 +40,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
     super.initState();
     
     loadDownloadedFiles();
-
+    // fetchJointCirculars();
+    // fetchMemoCirculars();
+    // fetchPresidentialCirculars();
+    // fetchDraftIssuances();
+    // fetchRepublicActs();
+    // fetchLegalOpinion();
   }
 
  Future<void> loadDownloadedFiles() async {
@@ -68,6 +80,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               
               _buildPdf(context), // Corrected this line
             ],
+           
 
 
             ),
@@ -75,7 +88,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
       );
     }
 
-  // Method to build the search input and category filter row
+
+// Method to build the search input and category filter row
   Widget _buildSearchAndFilterRow() {
     return Row(
       children: [
@@ -131,7 +145,77 @@ class _LibraryScreenState extends State<LibraryScreen> {
       ],
     );
   }
+//Latest Issuances
+  // Widget _buildLatestSection(String title, List<LatestIssuance> items) {
+  //   // Filter items based on selected category and search query
+            
+  //     List<LatestIssuance> filteredItems = items
+  //           .where((item) =>
+  //               (_selectedCategory == 'All' || item.category == _selectedCategory) &&
+  //               (item.outcome.toLowerCase().contains(_searchController.text.toLowerCase())))
+  //           .toList();
 
+
+//           if (filteredItems.isEmpty) {
+  //           return Container(
+  //             alignment: Alignment.center,
+  //             child: Text('No data available'),
+  //           );
+  //     }
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.stretch,
+  //     children: [
+  //       SizedBox(height: 16),
+  //       Text(
+  //         title,
+  //         style: TextStyle(
+  //           fontSize: 18,
+  //           fontWeight: FontWeight.bold,
+  //         ),
+  //       ),
+  //       SizedBox(height: 8),
+  //       Container(
+  //         height: 200,
+  //         child: ListView.builder(
+  //           scrollDirection: Axis.horizontal,
+  //           itemCount: filteredItems.length,
+  //           itemBuilder: (context, index) {
+  //             return Card(
+  //               margin: EdgeInsets.symmetric(horizontal: 8),
+  //               child: Container(
+  //                 width: 300,
+  //                 padding: EdgeInsets.all(8),
+  //                 child: Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     // Text('ID: ${filteredItems[index].id}'),
+  //                     Text(
+  //                       'Title: ${filteredItems[index].issuance.title}',
+  //                       style: TextStyle(
+  //                         overflow: TextOverflow.ellipsis),
+  //                     ),
+  //                     Text('Category: ${filteredItems[index].category}'),
+  //                     Text('Outcome: ${filteredItems[index].outcome}',
+  //                       style: TextStyle(
+  //                         overflow: TextOverflow.ellipsis,                     
+  //                       )
+  //                     ),
+  //                     Text('Issuance Date: ${filteredItems[index].issuance.date}'),
+  //                     Text('Reference No: ${filteredItems[index].issuance.referenceNo}'),
+  //                     Text('Url Link: ${filteredItems[index].issuance.urlLink}'),
+                    
+  //                   ],
+  //                 ),
+  //               ),
+  //             );
+  //           },
+  //         ),
+  //       ),
+        
+  //     ],
+  //   );
+  // }
+ 
   Widget _buildPdf(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -139,6 +223,21 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
         SizedBox(height: 16),
 
+        if(downloadedFiles.isEmpty)
+          Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'No downloaded issuances',
+                    style: TextStyle(
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+          ),
         if (downloadedFiles.isNotEmpty)
           Text(
             'Downloaded Files:',
@@ -148,7 +247,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               overflow: TextOverflow.ellipsis, 
             ),
           ),
-        SizedBox(height: 8),
+        SizedBox(height: 10),
         if (downloadedFiles.isNotEmpty)
           Wrap(
             spacing: 8.0,
@@ -168,7 +267,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
       ],
     );
   }
-
 
 Future<void> openPdfViewer(BuildContext context, String filePath) async {
   Navigator.push(
