@@ -1,3 +1,4 @@
+import 'package:DILGDOCS/Services/auth_services.dart';
 import 'package:flutter/material.dart';
 import 'latest_issuances.dart';
 import 'joint_circulars.dart';
@@ -9,6 +10,7 @@ import 'legal_opinions.dart';
 import 'home_screen.dart';
 import 'about_screen.dart';
 import 'developers_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Sidebar extends StatelessWidget {
   final int currentIndex;
@@ -61,16 +63,32 @@ class Sidebar extends StatelessWidget {
             _buildSidebarItem(Icons.info, 'About', 8, context),
             _buildSidebarItem(Icons.people, 'Developers', 9, context),
             Divider(color: Colors.white),
-            _buildSidebarItem(Icons.exit_to_app, 'Logout', 10, context,
-                onPressed: () {
-              Navigator.pushReplacementNamed(context, '/login');
+          _buildSidebarItem(Icons.exit_to_app, 'Logout', 10, context, onPressed: () async {
+              try {
+                // Call the logout method (assuming you've implemented it)
+                await AuthServices.logout();
+
+                // Clear the stored token
+                await clearToken();
+
+                // Navigate to the login screen
+                Navigator.pushReplacementNamed(context, '/login');
+              } catch (error) {
+                print('Error during logout: $error');
+                // Handle the error, if any
+              }
             }),
+
+
           ],
         ),
       ),
     );
   }
-
+Future<void> clearToken() async {
+  final prefs = await SharedPreferences.getInstance();
+  prefs.remove('token');
+}
   Widget _getPageByIndex(int index) {
     switch (index) {
       case 0:
