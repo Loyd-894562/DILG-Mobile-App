@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../screens/sidebar.dart';
 import '../screens/details_screen.dart';
 import 'package:http/http.dart' as http;
+import 'file_utils.dart';
 
 class RepublicActs extends StatefulWidget {
   @override
@@ -145,7 +146,7 @@ class _RepublicActsState extends State<RepublicActs> {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 18,
+                                  fontSize: 14,
                                 ),
                               ),
                             ),
@@ -155,7 +156,7 @@ class _RepublicActsState extends State<RepublicActs> {
                                 DateTime.parse(_republicActs[index].issuance.date),
                               ),
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                               ),
                             ),
                           ],
@@ -241,27 +242,5 @@ class Issuance {
       urlLink: json['url_link'],
       type: json['type'],
     );
-  }
-}
-String getTypeForDownload(String issuanceType) {
-  // Map issuance types to corresponding download types
-  switch (issuanceType) {
-    case 'Latest Issuance':
-      return 'Latest Issuance';
-    case 'Joint Circular':
-      return 'Joint Circular';
-    case 'Memo Circular':
-      return 'Memo Circular';
-     case 'Presidential Directives':
-      return 'Presidential Directives';  
-     case 'Draft Issuances':
-      return 'Draft Issuances';  
-     case 'Republic Acts':
-      return 'Republic Acts';  
-     case 'Legal Opinions':
-      return 'Legal Opinions';  
-  
-    default:
-      return 'Other';
   }
 }

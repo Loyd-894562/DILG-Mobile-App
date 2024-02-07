@@ -5,6 +5,7 @@ import '../utils/routes.dart';
 import 'sidebar.dart';
 import 'details_screen.dart';
 import 'package:http/http.dart' as http;
+import "file_utils.dart";
 class PresidentialDirectives extends StatefulWidget {
   @override
   State<PresidentialDirectives> createState() => _PresidentialDirectivesState();
@@ -278,25 +279,25 @@ class Issuance {
     );
   }
 }
-String getTypeForDownload(String issuanceType) {
-  // Map issuance types to corresponding download types
-  switch (issuanceType) {
-    case 'Latest Issuance':
-      return 'Latest Issuance';
-    case 'Joint Circular':
-      return 'Joint Circular';
-    case 'Memo Circular':
-      return 'Memo Circular';
-     case 'Presidential Directives':
-      return 'Presidential Directives';  
-     case 'Draft Issuances':
-      return 'Draft Issuances';  
-     case 'Republic Acts':
-      return 'Republic Acts';  
-     case 'Legal Opinions':
-      return 'Legal Opinions';  
+// String getTypeForDownload(String issuanceType) {
+//   // Map issuance types to corresponding download types
+//   switch (issuanceType) {
+//     case 'Latest Issuance':
+//       return 'Latest Issuance';
+//     case 'Joint Circulars':
+//       return 'Joint Circulars';
+//     case 'Memo Circulars':
+//       return 'Memo Circulars';
+//      case 'Presidential Directives':
+//       return 'Presidential Directives';  
+//      case 'Draft Issuances':
+//       return 'Draft Issuances';  
+//      case 'Republic Acts':
+//       return 'Republic Acts';  
+//      case 'Legal Opinions':
+//       return 'Legal Opinions';  
   
-    default:
-      return 'Other';
-  }
-}
+//     default:
+//       return 'Other';
+//   }
+// }

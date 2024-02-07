@@ -272,12 +272,12 @@ class Issuance {
 String getTypeForDownload(String issuanceType) {
   // Map issuance types to corresponding download types
   switch (issuanceType) {
-    case 'Latest Issuance':
-      return 'Latest Issuance';
-    case 'Joint Circular':
-      return 'Joint Circular';
-    case 'Memo Circular':
-      return 'Memo Circular';
+    case 'Latest Issuances':
+      return 'Latest Issuances';
+    case 'Joint Circulars':
+      return 'Joint Circulars';
+    case 'Memo Circulars':
+      return 'Memo Circulars';
      case 'Presidential Directives':
       return 'Presidential Directives';  
      case 'Draft Issuances':
