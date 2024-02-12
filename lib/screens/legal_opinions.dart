@@ -22,7 +22,7 @@ class _LegalOpinionsState extends State<LegalOpinions> {
 
   Future<void> fetchLegalOpinions() async {
     final response = await http.get(
-        Uri.parse('https://dilg.mdc-devs.com/api/legal_opinions'),
+        Uri.parse('https://issuances.dilgbohol.com/api/legal_opinions'),
         headers: {
           'Accept': 'application/json',
         });

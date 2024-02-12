@@ -25,7 +25,7 @@ class _JointCircularsState extends State<JointCirculars> {
 
  Future<void> fetchLatestIssuances() async {
     final response = await http.get(
-      Uri.parse('https://dilg.mdc-devs.com/api/joint_circulars'),
+      Uri.parse('https://issuances.dilgbohol.com/api/joint_circulars'),
       headers: {
         'Accept': 'application/json',
       },

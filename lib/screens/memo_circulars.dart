@@ -24,7 +24,7 @@ class _MemoCircularsState extends State<MemoCirculars> {
 
  Future<void> fetchMemoCirculars() async {
     final response = await http.get(
-      Uri.parse('https://dilg.mdc-devs.com/api/memo_circulars'),
+      Uri.parse('https://issuances.dilgbohol.com/api/memo_circulars'),
       headers: {
         'Accept': 'application/json',
       },
@@ -271,8 +271,8 @@ class Issuance {
 String getTypeForDownload(String issuanceType) {
   // Map issuance types to corresponding download types
   switch (issuanceType) {
-    case 'Latest Issuances':
-      return 'Latest Issuances';
+    case 'Latest Issuance':
+      return 'Latest Issuance';
     case 'Joint Circulars':
       return 'Joint Circulars';
     case 'Memo Circulars':

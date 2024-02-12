@@ -37,7 +37,7 @@ class _LatestIssuancesState extends State<LatestIssuances> {
 
  Future<void> fetchLatestIssuances() async {
     final response = await http.get(
-      Uri.parse('https://dilg.mdc-devs.com/api/latest_issuances'),
+      Uri.parse('https://issuances.dilgbohol.com/api/latest_issuances'),
       headers: {
         'Accept': 'application/json',
       },

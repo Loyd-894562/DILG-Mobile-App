@@ -25,7 +25,7 @@ class _PresidentialDirectivesState extends State<PresidentialDirectives> {
 
   Future<void> fetchPresidentialCirculars() async {
     final response = await http.get(
-      Uri.parse('https://dilg.mdc-devs.com/api/presidential_directives'),
+      Uri.parse('https://issuances.dilgbohol.com/api/presidential_directives'),
       headers: {
         'Accept': 'application/json',
       },

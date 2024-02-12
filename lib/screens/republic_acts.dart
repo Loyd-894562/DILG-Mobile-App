@@ -24,7 +24,7 @@ class _RepublicActsState extends State<RepublicActs> {
 
   Future<void> fetchRepublicActs() async {
     final response = await http.get(
-      Uri.parse('https://dilg.mdc-devs.com/api/republic_acts'),
+      Uri.parse('https://issuances.dilgbohol.com/api/republic_acts'),
       headers: {
         'Accept': 'application/json',
       },
