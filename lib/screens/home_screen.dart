@@ -119,26 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16.0),
             // Recently Downloaded Issuances
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Recently Downloaded Issuances',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  _buildRecentlyDownloadedIssuances(),
-                ],
-              ),
-            ),
+            
           ],
         );
       case 1:
@@ -170,22 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildRecentlyDownloadedIssuances() {
-    return SizedBox(
-      height: 300.0,
-      child: ListView.builder(
-        itemCount: 1,
-        itemBuilder: (context, index) {
-          return const Card(
-            child: ListTile(
-              title: Text('Issuance 1'),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
+  
   void _navigateToSelectedPage(BuildContext context, int index) {
     switch (index) {
       case 1:

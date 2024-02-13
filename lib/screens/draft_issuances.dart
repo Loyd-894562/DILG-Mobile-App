@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:DILGDOCS/screens/joint_circulars.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import '../utils/routes.dart';
@@ -66,7 +67,7 @@ class _DraftIssuancesState extends State<DraftIssuances> {
       drawer: Sidebar(
         currentIndex: 1,
         onItemSelected: (index) {
-          _navigateToSelectedPage(context, index);
+          // _navigateToSelectedPage(context, index);
         },
       ),
     );
@@ -212,9 +213,9 @@ class _DraftIssuancesState extends State<DraftIssuances> {
 }
 
 
-  void _navigateToSelectedPage(BuildContext context, int index) {
-    // Handle navigation if needed
-  }
+  // void _navigateToSelectedPage(BuildContext context, int index) {
+  //   // Handle navigation if needed
+  // }
 }
 class DraftIssuance {
    final int id;
@@ -269,25 +270,3 @@ class Issuance {
   }
 }
 
-String getTypeForDownload(String issuanceType) {
-  // Map issuance types to corresponding download types
-  switch (issuanceType) {
-    case 'Latest Issuance':
-      return 'Latest Issuance';
-    case 'Joint Circulars':
-      return 'Joint Circulars';
-    case 'Memo Circulars':
-      return 'Memo Circulars';
-     case 'Presidential Directives':
-      return 'Presidential Directives';  
-     case 'Draft Issuances':
-      return 'Draft Issuances';  
-     case 'Republic Acts':
-      return 'Republic Acts';  
-     case 'Legal Opinions':
-      return 'Legal Opinions';  
-  
-    default:
-      return 'Other';
-  }
-}

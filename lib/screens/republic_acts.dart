@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../screens/sidebar.dart';
 import '../screens/details_screen.dart';
 import 'package:http/http.dart' as http;
+import 'file_utils.dart';
 
 class RepublicActs extends StatefulWidget {
   @override
@@ -97,23 +98,7 @@ class _RepublicActsState extends State<RepublicActs> {
           ),
 
           // Category Dropdown
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Title/Subject: ',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 8.0),
-                
-              ],
-            ),
-          ),
+          
 
           SizedBox(height: 16.0),
 
@@ -126,7 +111,7 @@ class _RepublicActsState extends State<RepublicActs> {
                 Text(
                   'Republic Acts',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -161,7 +146,7 @@ class _RepublicActsState extends State<RepublicActs> {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 18,
+                                  fontSize: 14,
                                 ),
                               ),
                             ),
@@ -171,7 +156,7 @@ class _RepublicActsState extends State<RepublicActs> {
                                 DateTime.parse(_republicActs[index].issuance.date),
                               ),
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 12,
                               ),
                             ),
                           ],
@@ -259,6 +244,7 @@ class Issuance {
     );
   }
 }
+
 String getTypeForDownload(String issuanceType) {
   // Map issuance types to corresponding download types
   switch (issuanceType) {
@@ -281,3 +267,4 @@ String getTypeForDownload(String issuanceType) {
       return 'Other';
   }
 }
+
