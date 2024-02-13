@@ -115,9 +115,12 @@ Future<void> downloadAndSavePdf(BuildContext context, String url, String type, S
   try {
     final appDir = await getExternalStorageDirectory();
     final directoryPath = '${appDir!.path}/$type';
-    final filePath = '$directoryPath/$title.pdf';
+    final sanitizedTitle = title.replaceAll(RegExp(r'[^\w\s]+'), ''); // Remove special characters from the title
+    final filePath = '$directoryPath/$sanitizedTitle.pdf'; // Use the sanitized title in the file path
 
     final file = File(filePath);
+
+
     if (await file.exists()) {
       // File already exists, close loading dialog and return
       Navigator.of(context).pop();
@@ -185,5 +188,4 @@ Future<void> downloadAndSavePdf(BuildContext context, String url, String type, S
     Navigator.of(context).pop();
   }
 }
-
 }

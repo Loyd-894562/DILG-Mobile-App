@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:DILGDOCS/screens/joint_circulars.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import '../utils/routes.dart';
@@ -24,7 +25,7 @@ class _DraftIssuancesState extends State<DraftIssuances> {
 
   Future<void> fetchDraftIssuances() async {
     final response = await http.get(
-      Uri.parse('https://dilg.mdc-devs.com/api/draft_issuances'),
+      Uri.parse('https://issuances.dilgbohol.com/api/draft_issuances'),
       headers: {
         'Accept': 'application/json',
       },
@@ -269,25 +270,3 @@ class Issuance {
   }
 }
 
-String getTypeForDownload(String issuanceType) {
-  // Map issuance types to corresponding download types
-  switch (issuanceType) {
-    case 'Latest Issuances':
-      return 'Latest Issuances';
-    case 'Joint Circulars':
-      return 'Joint Circulars';
-    case 'Memo Circulars':
-      return 'Memo Circulars';
-     case 'Presidential Directives':
-      return 'Presidential Directives';  
-     case 'Draft Issuances':
-      return 'Draft Issuances';  
-     case 'Republic Acts':
-      return 'Republic Acts';  
-     case 'Legal Opinions':
-      return 'Legal Opinions';  
-  
-    default:
-      return 'Other';
-  }
-}

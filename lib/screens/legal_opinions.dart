@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'package:DILGDOCS/screens/draft_issuances.dart';
+import 'package:DILGDOCS/screens/file_utils.dart';
+import 'package:DILGDOCS/screens/joint_circulars.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'sidebar.dart';
@@ -253,28 +256,5 @@ class Issuance {
       urlLink: json['url_link'],
       type: json['type'],
     );
-  }
-}
-
-String getTypeForDownload(String issuanceType) {
-  // Map issuance types to corresponding download types
-  switch (issuanceType) {
-    case 'Latest Issuance':
-      return 'Latest Issuance';
-    case 'Joint Circulars':
-      return 'Joint Circulars';
-    case 'Memo Circulars':
-      return 'Memo Circulars';
-     case 'Presidential Directives':
-      return 'Presidential Directives';  
-     case 'Draft Issuances':
-      return 'Draft Issuances';  
-     case 'Republic Acts':
-      return 'Republic Acts';  
-     case 'Legal Opinions':
-      return 'Legal Opinions';  
-  
-    default:
-      return 'Other';
   }
 }

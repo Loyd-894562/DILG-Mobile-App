@@ -25,7 +25,8 @@ void initState() {
   _loadRootDirectory();
 }
 
-   void _loadRootDirectory() async {
+void _loadRootDirectory() async {
+
     final appDir = await getExternalStorageDirectory();
     print('Root directory path: ${appDir?.path}');
     if (appDir == null) {
@@ -166,7 +167,10 @@ Future<void> loadDownloadedFiles(Directory directory) async {
       ],
     );
   }
-void _filterFiles(String query) {
+
+
+
+  void _filterFiles(String query) {
     setState(() {
       filteredFiles = downloadedFiles
           .where((file) => file.toLowerCase().contains(query.toLowerCase()))
@@ -207,4 +211,3 @@ String getFolderName(String path) {
   print('No folder name found in path: $path');
   return 'Other';
 }
-
