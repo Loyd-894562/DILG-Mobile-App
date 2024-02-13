@@ -24,7 +24,7 @@ class _MemoCircularsState extends State<MemoCirculars> {
 
  Future<void> fetchMemoCirculars() async {
     final response = await http.get(
-      Uri.parse('https://dilg.mdc-devs.com/api/memo_circulars'),
+      Uri.parse('https://issuances.dilgbohol.com/api/memo_circulars'),
       headers: {
         'Accept': 'application/json',
       },
@@ -204,7 +204,7 @@ class _MemoCircularsState extends State<MemoCirculars> {
         title: issuance.issuance.title,
         content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))} \br \br ${issuance.responsible_office}',
         pdfUrl: issuance.issuance.urlLink,
-         type: getTypeForDownload(issuance.issuance.type),
+        type: getTypeForDownload(issuance.issuance.type),
         
       ),
     ),
@@ -268,25 +268,25 @@ class Issuance {
     );
   }
 }
-String getTypeForDownload(String issuanceType) {
-  // Map issuance types to corresponding download types
-  switch (issuanceType) {
-    case 'Latest Issuance':
-      return 'Latest Issuance';
-    case 'Joint Circular':
-      return 'Joint Circular';
-    case 'Memo Circular':
-      return 'Memo Circular';
-     case 'Presidential Directives':
-      return 'Presidential Directives';  
-     case 'Draft Issuances':
-      return 'Draft Issuances';  
-     case 'Republic Acts':
-      return 'Republic Acts';  
-     case 'Legal Opinions':
-      return 'Legal Opinions';  
-  
-    default:
-      return 'Other';
+  String getTypeForDownload(String issuanceType) {
+    // Map issuance types to corresponding download types
+    switch (issuanceType) {
+      case 'Latest Issuance':
+        return 'Latest Issuance';
+      case 'Joint Circulars':
+        return 'Joint Circulars';
+      case 'Memo Circulars':
+        return 'Memo Circulars';
+      case 'Presidential Directives':
+        return 'Presidential Directives';  
+      case 'Draft Issuances':
+        return 'Draft Issuances';  
+      case 'Republic Acts':
+        return 'Republic Acts';  
+      case 'Legal Opinions':
+        return 'Legal Opinions';  
+    
+      default:
+        return 'Other';
+    }
   }
-}

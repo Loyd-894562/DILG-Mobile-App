@@ -192,8 +192,8 @@ String getTypeFromPath(String filePath) {
   if (parts.length > 1) {
     String folder = parts[parts.length - 2].toLowerCase();
 
-    if (folder.contains('Latest Issuance')) {
-      return 'Latest Issuance';
+    if (folder.contains('Latest Issuances')) {
+      return 'Latest Issuances';
     } else if (folder.contains('Joint Circulars')) {
       return 'Joint Circulars';
     } else if (folder.contains('Memo Circulars')) {

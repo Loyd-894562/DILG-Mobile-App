@@ -25,7 +25,7 @@ class _JointCircularsState extends State<JointCirculars> {
 
  Future<void> fetchLatestIssuances() async {
     final response = await http.get(
-      Uri.parse('https://dilg.mdc-devs.com/api/joint_circulars'),
+      Uri.parse('https://issuances.dilgbohol.com/api/joint_circulars'),
       headers: {
         'Accept': 'application/json',
       },
@@ -278,10 +278,10 @@ String getTypeForDownload(String issuanceType) {
   switch (issuanceType) {
     case 'Latest Issuance':
       return 'Latest Issuance';
-    case 'Joint Circular':
-      return 'Joint Circular';
-    case 'Memo Circular':
-      return 'Memo Circular';
+    case 'Joint Circulars':
+      return 'Joint Circulars';
+    case 'Memo Circulars':
+      return 'Memo Circulars';
      case 'Presidential Directives':
       return 'Presidential Directives';  
      case 'Draft Issuances':

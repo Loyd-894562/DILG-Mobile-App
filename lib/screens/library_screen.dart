@@ -4,11 +4,8 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'downloadedfile_screen.dart';
 import 'dart:io'; // Import 'dart:io' for File and Directory
 import 'package:path_provider/path_provider.dart'; // Import 'package:path_provider/path_provider.dart' for getApplicationDocumentsDirectory
-import 'package:http/http.dart' as http;
 
-import 'package:flutter/material.dart';
-// import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:http/http.dart' as http;
+
 class LibraryScreen extends StatefulWidget {
   @override
   _LibraryScreenState createState() => _LibraryScreenState();
@@ -16,107 +13,91 @@ class LibraryScreen extends StatefulWidget {
 
 class _LibraryScreenState extends State<LibraryScreen> {
   TextEditingController _searchController = TextEditingController();
+  List<String> downloadedFiles = [];
+  List<String> filteredFiles = [];
 
- List<String> downloadedFiles = [];
-
-
-
-  String _selectedCategory = 'All';
-  List<String> _categories = [
-    'All',
-    'Latest Issuances',
-    'Joint Circulars',
-    'Memo Circulars',
-    'Presidential Directives',
-    'Draft Issuances',
-    'Republic Acts',
-    'Legal Opinions',
-  ];
 
 
 //For Latest Issuances
-  @override
-  void initState() {
-    super.initState();
-    
-    loadDownloadedFiles();
-    // fetchJointCirculars();
-    // fetchMemoCirculars();
-    // fetchPresidentialCirculars();
-    // fetchDraftIssuances();
-    // fetchRepublicActs();
-    // fetchLegalOpinion();
-  }
+ @override
+void initState() {
+  super.initState();
+  _loadRootDirectory();
+}
 
- Future<void> loadDownloadedFiles() async {
+void _loadRootDirectory() async {
     final appDir = await getExternalStorageDirectory();
-    final directory = Directory(appDir!.path);
+    print('Root directory path: ${appDir?.path}');
+    if (appDir == null) {
+      print('Error: Failed to get the root directory path');
+      return;
+    }
 
-    // List all files in the directory
-    List<FileSystemEntity> files = directory.listSync();
+    final rootDirectory = Directory(appDir.path);
+    await loadDownloadedFiles(rootDirectory); // Use await here
 
+    // Populate filteredFiles with all downloaded files
     setState(() {
-      // Filter out only PDF files
-      downloadedFiles = files
-          .where((file) => file is File && file.path.toLowerCase().endsWith('.pdf'))
-          .map((file) => file.path)
-          .toList();
+      filteredFiles.addAll(downloadedFiles);
     });
   }
-//for Latest Issuances - API
-  
+
+Future<void> loadDownloadedFiles(Directory directory) async {
+  // Map to store files grouped by their folder names
+  Map<String, List<String>> filesByFolder = {};
+
+  // List all files and directories in the current directory
+  List<FileSystemEntity> entities = directory.listSync();
+
+  // Iterate over each entity in the directory
+  for (var entity in entities) {
+    // If the entity is a directory, recursively call loadDownloadedFiles on it
+    if (entity is Directory) {
+      await loadDownloadedFiles(entity); // Use await here
+    }
+    // If the entity is a file and ends with .pdf, categorize it based on its folder name
+    else if (entity is File && entity.path.toLowerCase().endsWith('.pdf')) {
+      String folderName = getFolderName(entity.path);
+      if (!filesByFolder.containsKey(folderName)) {
+        filesByFolder[folderName] = [];
+      }
+      filesByFolder[folderName]!.add(entity.path);
+    }
+  }
+
+  // Add the PDF files from the current directory to the downloadedFiles list
+  setState(() {
+    downloadedFiles.addAll(filesByFolder['Latest Issuances'] ?? []);
+    downloadedFiles.addAll(filesByFolder['Joint Circulars'] ?? []);
+    downloadedFiles.addAll(filesByFolder['Memo Circulars'] ?? []);
+    downloadedFiles.addAll(filesByFolder['Presidential Directives'] ?? []);
+    downloadedFiles.addAll(filesByFolder['Draft Issuances'] ?? []);
+    downloadedFiles.addAll(filesByFolder['Legal Opinions'] ?? []);
+    downloadedFiles.addAll(filesByFolder['Republic Acts'] ?? []);
+    downloadedFiles.addAll(filesByFolder['Other'] ?? []);
+    downloadedFiles.sort();
+  });
+}
 
 
-  @override
+//for Latest Issuances - API@override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-
-           children: [
-              _buildSearchAndFilterRow(),
-              // Use a common method to build each section
-              
-              _buildPdf(context), // Corrected this line
-            ],
-           
-
-
-            ),
-          ),
-      );
-    }
-
-  // Method to build the search input and category filter row
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildSearchAndFilterRow(),
+            _buildPdf(context),
+          ],
+        ),
+      ),
+    );
+  }
+  
   Widget _buildSearchAndFilterRow() {
     return Row(
       children: [
-        DropdownButton<String>(
-          value: _selectedCategory,
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedCategory = newValue!;
-            });
-          },
-          items: _categories.map((String category) {
-            return DropdownMenuItem<String>(
-              value: category,
-              child: Text(
-                category,
-                style: TextStyle(color: Colors.black),
-              ),
-            );
-          }).toList(),
-          style: TextStyle(color: Colors.black),
-          icon: Icon(Icons.arrow_drop_down),
-          iconSize: 24,
-          elevation: 16,
-          underline: Container(
-            height: 2,
-            color: Colors.blue[900],
-          ),
-        ),
         SizedBox(width: 16),
         Expanded(
           child: Container(
@@ -128,9 +109,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: TextField(
               controller: _searchController,
               onChanged: (value) {
-                setState(() {
-                  // Handle search query changes here
-                });
+                _filterFiles(value);
               },
               decoration: InputDecoration(
                 hintText: 'Search',
@@ -138,134 +117,83 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 icon: Icon(Icons.search),
               ),
             ),
-             
           ),
         ),
       ],
     );
   }
-//Latest Issuances
-  // Widget _buildLatestSection(String title, List<LatestIssuance> items) {
-  //   // Filter items based on selected category and search query
-            
-  //     List<LatestIssuance> filteredItems = items
-  //           .where((item) =>
-  //               (_selectedCategory == 'All' || item.category == _selectedCategory) &&
-  //               (item.outcome.toLowerCase().contains(_searchController.text.toLowerCase())))
-  //           .toList();
 
-  //           if (filteredItems.isEmpty) {
-  //           return Container(
-  //             alignment: Alignment.center,
-  //             child: Text('No data available'),
-  //           );
-  //     }
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.stretch,
-  //     children: [
-  //       SizedBox(height: 16),
-  //       Text(
-  //         title,
-  //         style: TextStyle(
-  //           fontSize: 18,
-  //           fontWeight: FontWeight.bold,
-  //         ),
-  //       ),
-  //       SizedBox(height: 8),
-  //       Container(
-  //         height: 200,
-  //         child: ListView.builder(
-  //           scrollDirection: Axis.horizontal,
-  //           itemCount: filteredItems.length,
-  //           itemBuilder: (context, index) {
-  //             return Card(
-  //               margin: EdgeInsets.symmetric(horizontal: 8),
-  //               child: Container(
-  //                 width: 300,
-  //                 padding: EdgeInsets.all(8),
-  //                 child: Column(
-  //                   crossAxisAlignment: CrossAxisAlignment.start,
-  //                   children: [
-  //                     // Text('ID: ${filteredItems[index].id}'),
-  //                     Text(
-  //                       'Title: ${filteredItems[index].issuance.title}',
-  //                       style: TextStyle(
-  //                         overflow: TextOverflow.ellipsis),
-  //                     ),
-  //                     Text('Category: ${filteredItems[index].category}'),
-  //                     Text('Outcome: ${filteredItems[index].outcome}',
-  //                       style: TextStyle(
-  //                         overflow: TextOverflow.ellipsis,                     
-  //                       )
-  //                     ),
-  //                     Text('Issuance Date: ${filteredItems[index].issuance.date}'),
-  //                     Text('Reference No: ${filteredItems[index].issuance.referenceNo}'),
-  //                     Text('Url Link: ${filteredItems[index].issuance.urlLink}'),
-                    
-  //                   ],
-  //                 ),
-  //               ),
-  //             );
-  //           },
-  //         ),
-  //       ),
-        
-  //     ],
-  //   );
-  // }
- 
   Widget _buildPdf(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-
         SizedBox(height: 16),
-
-        if(downloadedFiles.isEmpty)
+        if (filteredFiles.isEmpty)
           Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    'No downloaded issuances',
-                    style: TextStyle(
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
+            child: Text(
+              'No downloaded issuances',
+              style: TextStyle(
+                fontSize: 18,
               ),
-          ),
-        if (downloadedFiles.isNotEmpty)
-          Text(
-            'Downloaded Files:',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              overflow: TextOverflow.ellipsis, 
             ),
           ),
-        SizedBox(height: 10),
-        if (downloadedFiles.isNotEmpty)
-          Wrap(
-            spacing: 8.0,
-            runSpacing: 8.0,
-            children: downloadedFiles.map((file) {
-              return ElevatedButton(
-                onPressed: () {
-                  openPdfViewer(context, file);
-                },
-                child: Text(file.split('/').last,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 2, ),
-                   // Display only the file name
-              );
-            }).toList(),
+        if (filteredFiles.isNotEmpty)
+          Column(
+            children: [
+              Text(
+                'Downloaded Files:',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(height: 10),
+              Column(
+                children: filteredFiles.map((file) {
+                  return Container(
+                    margin: EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        openPdfViewer(context, file);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          file.split('/').last,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
       ],
     );
   }
 
+
+
+  void _filterFiles(String query) {
+    setState(() {
+      filteredFiles = downloadedFiles
+          .where((file) => file.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
+}
 
 Future<void> openPdfViewer(BuildContext context, String filePath) async {
   Navigator.push(
@@ -288,62 +216,15 @@ Future<void> openPdfViewer(BuildContext context, String filePath) async {
     ),
   );
 }
- 
-}
 
-//for Latest getters and setters
-class LatestIssuance {
-  final int id;
-  final String category;
-  final String outcome;
-  final Issuance issuance;
-
-  LatestIssuance({
-    required this.id,
-    required this.category,
-    required this.outcome,
-    required this.issuance,
-  });
-
-  factory LatestIssuance.fromJson(Map<String, dynamic> json) {
-    return LatestIssuance(
-      id: json['id'],
-      category: json['category'],
-      // title: json['issuance']['title'],
-      outcome: json['outcome'],
-      issuance: Issuance.fromJson(json['issuance']),
-    );
+String getFolderName(String path) {
+  List<String> parts = path.split('/');
+  if (parts.length > 1) {
+    String folder = parts[parts.length - 2]; // Get the second-to-last part of the path
+    print('Folder name extracted: $folder');
+    return folder;
   }
-}
-
-//for Joint getters and setters
-
-//for Issuance
-class Issuance {
-  final int id;
-  final String date;
-  final String title;
-  final String referenceNo;
-  final String keyword;
-  final String urlLink;
-
-  Issuance({
-    required this.id,
-    required this.date,
-    required this.title,
-    required this.referenceNo,
-    required this.keyword,
-    required this.urlLink,
-  });
-
-  factory Issuance.fromJson(Map<String, dynamic> json) {
-    return Issuance(
-      id: json['id'],
-      date: json['date'],
-      title: json['title'],
-      referenceNo: json['reference_no'],
-      keyword: json['keyword'],
-      urlLink: json['url_link'],
-    );
-  }
+  // Default category if no matching folder is found
+  print('No folder name found in path: $path');
+  return 'Other';
 }
