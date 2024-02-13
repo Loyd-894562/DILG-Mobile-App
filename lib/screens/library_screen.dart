@@ -25,7 +25,7 @@ void initState() {
   _loadRootDirectory();
 }
 
-void _loadRootDirectory() async {
+   void _loadRootDirectory() async {
     final appDir = await getExternalStorageDirectory();
     print('Root directory path: ${appDir?.path}');
     if (appDir == null) {
@@ -41,13 +41,9 @@ void _loadRootDirectory() async {
       filteredFiles.addAll(downloadedFiles);
     });
   }
-
 Future<void> loadDownloadedFiles(Directory directory) async {
   // Map to store files grouped by their folder names
-  Map<String, List<String>> filesByFolder = {};
-
-  // List all files and directories in the current directory
-  List<FileSystemEntity> entities = directory.listSync();
+   List<FileSystemEntity> entities = directory.listSync();
 
   // Iterate over each entity in the directory
   for (var entity in entities) {
@@ -55,32 +51,19 @@ Future<void> loadDownloadedFiles(Directory directory) async {
     if (entity is Directory) {
       await loadDownloadedFiles(entity); // Use await here
     }
-    // If the entity is a file and ends with .pdf, categorize it based on its folder name
+    // If the entity is a file and ends with .pdf, add its path to downloadedFiles
     else if (entity is File && entity.path.toLowerCase().endsWith('.pdf')) {
-      String folderName = getFolderName(entity.path);
-      if (!filesByFolder.containsKey(folderName)) {
-        filesByFolder[folderName] = [];
-      }
-      filesByFolder[folderName]!.add(entity.path);
+      downloadedFiles.add(entity.path);
     }
   }
-
+  // Sort the downloaded files alphabetically
+  downloadedFiles.sort();
   // Add the PDF files from the current directory to the downloadedFiles list
-  setState(() {
-    downloadedFiles.addAll(filesByFolder['Latest Issuances'] ?? []);
-    downloadedFiles.addAll(filesByFolder['Joint Circulars'] ?? []);
-    downloadedFiles.addAll(filesByFolder['Memo Circulars'] ?? []);
-    downloadedFiles.addAll(filesByFolder['Presidential Directives'] ?? []);
-    downloadedFiles.addAll(filesByFolder['Draft Issuances'] ?? []);
-    downloadedFiles.addAll(filesByFolder['Legal Opinions'] ?? []);
-    downloadedFiles.addAll(filesByFolder['Republic Acts'] ?? []);
-    downloadedFiles.addAll(filesByFolder['Other'] ?? []);
-    downloadedFiles.sort();
-  });
+  
 }
 
-
 //for Latest Issuances - API@override
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
@@ -94,7 +77,7 @@ Future<void> loadDownloadedFiles(Directory directory) async {
       ),
     );
   }
-  
+
   Widget _buildSearchAndFilterRow() {
     return Row(
       children: [
@@ -183,10 +166,7 @@ Future<void> loadDownloadedFiles(Directory directory) async {
       ],
     );
   }
-
- 
-
-  void _filterFiles(String query) {
+void _filterFiles(String query) {
     setState(() {
       filteredFiles = downloadedFiles
           .where((file) => file.toLowerCase().contains(query.toLowerCase()))
@@ -194,7 +174,6 @@ Future<void> loadDownloadedFiles(Directory directory) async {
     });
   }
 }
-
 Future<void> openPdfViewer(BuildContext context, String filePath) async {
   Navigator.push(
     context,
@@ -228,6 +207,4 @@ String getFolderName(String path) {
   print('No folder name found in path: $path');
   return 'Other';
 }
-
- 
 
