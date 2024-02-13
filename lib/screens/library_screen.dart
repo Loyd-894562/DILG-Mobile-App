@@ -13,8 +13,9 @@ class LibraryScreen extends StatefulWidget {
 
 class _LibraryScreenState extends State<LibraryScreen> {
   TextEditingController _searchController = TextEditingController();
+  List<String> downloadedFiles = [];
+  List<String> filteredFiles = [];
 
- List<String> downloadedFiles = [];
 
 
 //For Latest Issuances
@@ -25,16 +26,21 @@ void initState() {
 }
 
 void _loadRootDirectory() async {
-  final appDir = await getExternalStorageDirectory();
-  print('Root directory path: ${appDir?.path}');
-  if (appDir == null) {
-    print('Error: Failed to get the root directory path');
-    return;
-  }
+    final appDir = await getExternalStorageDirectory();
+    print('Root directory path: ${appDir?.path}');
+    if (appDir == null) {
+      print('Error: Failed to get the root directory path');
+      return;
+    }
 
-  final rootDirectory = Directory(appDir.path);
-  await loadDownloadedFiles(rootDirectory); // Use await here
-}
+    final rootDirectory = Directory(appDir.path);
+    await loadDownloadedFiles(rootDirectory); // Use await here
+
+    // Populate filteredFiles with all downloaded files
+    setState(() {
+      filteredFiles.addAll(downloadedFiles);
+    });
+  }
 
 Future<void> loadDownloadedFiles(Directory directory) async {
   // Map to store files grouped by their folder names
@@ -74,36 +80,24 @@ Future<void> loadDownloadedFiles(Directory directory) async {
 }
 
 
-//for Latest Issuances - API
-  
-
-
-  @override
+//for Latest Issuances - API@override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-
-           children: [
-              _buildSearchAndFilterRow(),
-             
-              _buildPdf(context), // Corrected this line
-            ],
-           
-
-
-            ),
-          ),
-      );
-    }
-
-
-// Method to build the search input and category filter row
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildSearchAndFilterRow(),
+            _buildPdf(context),
+          ],
+        ),
+      ),
+    );
+  }
+  
   Widget _buildSearchAndFilterRow() {
     return Row(
       children: [
-        
         SizedBox(width: 16),
         Expanded(
           child: Container(
@@ -115,9 +109,7 @@ Future<void> loadDownloadedFiles(Directory directory) async {
             child: TextField(
               controller: _searchController,
               onChanged: (value) {
-                setState(() {
-                  // Handle search query changes here
-                });
+                _filterFiles(value);
               },
               decoration: InputDecoration(
                 hintText: 'Search',
@@ -125,62 +117,83 @@ Future<void> loadDownloadedFiles(Directory directory) async {
                 icon: Icon(Icons.search),
               ),
             ),
-             
           ),
         ),
       ],
     );
   }
 
- 
   Widget _buildPdf(BuildContext context) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      SizedBox(height: 16),
-      if (downloadedFiles.isEmpty)
-        Center(
-          child: Text(
-            'No downloaded issuances',
-            style: TextStyle(
-              fontSize: 18,
-            ),
-          ),
-        ),
-      if (downloadedFiles.isNotEmpty) // Check if downloadedFiles is not empty
-        Column(
-          children: [
-            Text(
-              'Downloaded Files:',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(height: 16),
+        if (filteredFiles.isEmpty)
+          Center(
+            child: Text(
+              'No downloaded issuances',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
-                overflow: TextOverflow.ellipsis,
               ),
             ),
-            SizedBox(height: 10),
-            Wrap(
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children: downloadedFiles.map((file) {
-                return ElevatedButton(
-                  onPressed: () {
-                    openPdfViewer(context, file);
-                  },
-                  child: Text(
-                    file.split('/').last,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-    ],
-  );
-}
+          ),
+        if (filteredFiles.isNotEmpty)
+          Column(
+            children: [
+              Text(
+                'Downloaded Files:',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(height: 10),
+              Column(
+                children: filteredFiles.map((file) {
+                  return Container(
+                    margin: EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        openPdfViewer(context, file);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          file.split('/').last,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
 
+ 
+
+  void _filterFiles(String query) {
+    setState(() {
+      filteredFiles = downloadedFiles
+          .where((file) => file.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
+}
 
 Future<void> openPdfViewer(BuildContext context, String filePath) async {
   Navigator.push(
@@ -217,5 +230,4 @@ String getFolderName(String path) {
 }
 
  
-}
 
