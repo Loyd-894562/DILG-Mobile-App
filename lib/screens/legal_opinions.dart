@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'package:DILGDOCS/screens/draft_issuances.dart';
-import 'package:DILGDOCS/screens/file_utils.dart';
-import 'package:DILGDOCS/screens/joint_circulars.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'sidebar.dart';
 import 'details_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:DILGDOCS/screens/draft_issuances.dart' as draft;
 
 class LegalOpinions extends StatefulWidget {
   @override
@@ -15,7 +13,6 @@ class LegalOpinions extends StatefulWidget {
 
 class _LegalOpinionsState extends State<LegalOpinions> {
   List<LegalOpinion> _legalOpinions = [];
-  List<LegalOpinion> get legalOpinions => _legalOpinions;
 
   @override
   void initState() {
@@ -25,10 +22,11 @@ class _LegalOpinionsState extends State<LegalOpinions> {
 
   Future<void> fetchLegalOpinions() async {
     final response = await http.get(
-        Uri.parse('https://issuances.dilgbohol.com/api/legal_opinions'),
-        headers: {
-          'Accept': 'application/json',
-        });
+      Uri.parse('https://issuances.dilgbohol.com/api/legal_opinions'),
+      headers: {
+        'Accept': 'application/json',
+      },
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body)['legals'];
@@ -81,7 +79,8 @@ class _LegalOpinionsState extends State<LegalOpinions> {
           // Search Input
           Container(
             margin: EdgeInsets.only(bottom: 8.0),
-            padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0), // Adjust padding
+            padding: EdgeInsets.symmetric(
+                horizontal: 8.0, vertical: 4.0), // Adjust padding
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey[400]!),
               borderRadius: BorderRadius.circular(12), // Adjust borderRadius
@@ -100,9 +99,7 @@ class _LegalOpinionsState extends State<LegalOpinions> {
             ),
           ),
 
-
           // Category Dropdown
-          
 
           // SizedBox(height: 15.0),
 
@@ -126,59 +123,60 @@ class _LegalOpinionsState extends State<LegalOpinions> {
                       _navigateToDetailsPage(context, _legalOpinions[index]);
                     },
                     child: Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom:
-                            BorderSide(color: const Color.fromARGB(255, 203, 201, 201), width: 1.0),
-                      ),
-                    ),
-                    child: Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            Icon(Icons.article,
-                                color: Colors.blue[
-                                    900]), // Replace with your desired icon
-                            SizedBox(width: 16.0),
-                            Expanded(
-                              child: Text(
-                                _legalOpinions[index].issuance.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 4.0),
-
-                            Text(
-                              'Ref #${_legalOpinions[index].issuance.referenceNo}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            SizedBox(width: 16.0),
-                            Text(
-                              DateFormat('MMMM dd, yyyy').format(
-                                DateTime.parse(
-                                    _legalOpinions[index].issuance.date),
-                              ),
-                              style: TextStyle(
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                              color: const Color.fromARGB(255, 203, 201, 201),
+                              width: 1.0),
                         ),
                       ),
-                    ),
+                      child: Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              Icon(Icons.article,
+                                  color: Colors.blue[
+                                      900]), // Replace with your desired icon
+                              SizedBox(width: 16.0),
+                              Expanded(
+                                child: Text(
+                                  _legalOpinions[index].issuance.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 4.0),
+
+                              Text(
+                                'Ref #${_legalOpinions[index].issuance.referenceNo}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              SizedBox(width: 16.0),
+                              Text(
+                                DateFormat('MMMM dd, yyyy').format(
+                                  DateTime.parse(
+                                      _legalOpinions[index].issuance.date),
+                                ),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
               ],
@@ -190,21 +188,19 @@ class _LegalOpinionsState extends State<LegalOpinions> {
   }
 
   void _navigateToDetailsPage(BuildContext context, LegalOpinion issuance) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => DetailsScreen(
-        title: issuance.issuance.title,
-        content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}',
-        pdfUrl: issuance.issuance.urlLink, 
-         type: getTypeForDownload(issuance.issuance.type),
-       
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailsScreen(
+          title: issuance.issuance.title,
+          content:
+              'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}',
+          pdfUrl: issuance.issuance.urlLink,
+          type: draft.getTypeForDownload(issuance.issuance.type),
+        ),
       ),
-    ),
-  );
-}
-
-  void _navigateToSelectedPage(BuildContext context, int index) {}
+    );
+  }
 }
 
 class LegalOpinion {

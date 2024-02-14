@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:DILGDOCS/screens/joint_circulars.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import '../utils/routes.dart';
@@ -13,19 +12,18 @@ class DraftIssuances extends StatefulWidget {
 }
 
 class _DraftIssuancesState extends State<DraftIssuances> {
-   List<DraftIssuance> _draftIssuances = [];
-    List<DraftIssuance> get draftIssuances => _draftIssuances;
-      
+  List<DraftIssuance> _draftIssuances = [];
+  List<DraftIssuance> get draftIssuances => _draftIssuances;
 
-@override
+  @override
   void initState() {
     super.initState();
     fetchDraftIssuances();
-}
+  }
 
   Future<void> fetchDraftIssuances() async {
     final response = await http.get(
-      Uri.parse('https://issuances.dilgbohol.com/api/draft_issuances'),
+      Uri.parse('https://dilg.mdc-devs.com/api/draft_issuances'),
       headers: {
         'Accept': 'application/json',
       },
@@ -33,12 +31,13 @@ class _DraftIssuancesState extends State<DraftIssuances> {
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body)['drafts'];
       setState(() {
-        _draftIssuances = data.map((item) => DraftIssuance.fromJson(item)).toList();
+        _draftIssuances =
+            data.map((item) => DraftIssuance.fromJson(item)).toList();
       });
     } else {
       // Handle error
       print('Failed to load Draft issuances');
-            
+
       print('Response status code: ${response.statusCode}');
       print('Response body: ${response.body}');
     }
@@ -80,7 +79,7 @@ class _DraftIssuancesState extends State<DraftIssuances> {
       child: Column(
         children: [
           // Filter Category Dropdown
-         
+
           // Search Input
           Container(
             // margin: EdgeInsets.only(top: 4.0),
@@ -119,76 +118,75 @@ class _DraftIssuancesState extends State<DraftIssuances> {
                   // In this case, only the left margin is set to 3.0
                   // margin: EdgeInsets.only(left: 3.0),
                 ),
-
                 SizedBox(height: 16.0),
                 for (int index = 0; index < _draftIssuances.length; index++)
-              InkWell(
-               onTap: () {
-                  _navigateToDetailsPage(context, _draftIssuances[index]);
-                },
-                child: Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom:
-                            BorderSide(color: const Color.fromARGB(255, 203, 201, 201), width: 1.0),
+                  InkWell(
+                    onTap: () {
+                      _navigateToDetailsPage(context, _draftIssuances[index]);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                              color: const Color.fromARGB(255, 203, 201, 201),
+                              width: 1.0),
+                        ),
                       ),
-                    ),
-                child: Card(
-                  elevation: 0,
-                 
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Icon(Icons.article, color: Colors.blue[900]),
-                        SizedBox(width: 16.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Card(
+                        elevation: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
                             children: [
-                              Text(
-                                _draftIssuances[index].issuance.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                              Icon(Icons.article, color: Colors.blue[900]),
+                              SizedBox(width: 16.0),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _draftIssuances[index].issuance.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4.0),
+                                    Text(
+                                      'Ref #${_draftIssuances[index].issuance.referenceNo}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Ref #${_draftIssuances[index].responsible_office}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              SizedBox(height: 4.0),
+                              SizedBox(width: 16.0),
                               Text(
-                                'Ref #${_draftIssuances[index].issuance.referenceNo}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
+                                DateFormat('MMMM dd, yyyy').format(
+                                  DateTime.parse(
+                                      _draftIssuances[index].issuance.date),
                                 ),
-                              ),
-                              Text(
-                                'Ref #${_draftIssuances[index].responsible_office}',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        SizedBox(width: 16.0),
-                        Text(
-                          DateFormat('MMMM dd, yyyy').format(
-                            DateTime.parse(_draftIssuances[index].issuance.date),
-                          ),
-                          style: TextStyle(
-                            fontSize: 12,
-                          ),
-                        ),
-                        
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-              ),
               ],
             ),
           ),
@@ -197,42 +195,41 @@ class _DraftIssuancesState extends State<DraftIssuances> {
     );
   }
 
- void _navigateToDetailsPage(BuildContext context, DraftIssuance issuance) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => DetailsScreen(
-        title: issuance.issuance.title,
-        content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}',
-        pdfUrl: issuance.issuance.urlLink,
-        type: getTypeForDownload(issuance.issuance.type),
-     
+  void _navigateToDetailsPage(BuildContext context, DraftIssuance issuance) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailsScreen(
+          title: issuance.issuance.title,
+          content:
+              'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}',
+          pdfUrl: issuance.issuance.urlLink,
+          type: getTypeForDownload(issuance.issuance.type),
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   // void _navigateToSelectedPage(BuildContext context, int index) {
   //   // Handle navigation if needed
   // }
 }
-class DraftIssuance {
-   final int id;
-   final String responsible_office;
-   final Issuance issuance;
 
-DraftIssuance({
+class DraftIssuance {
+  final int id;
+  final String responsible_office;
+  final Issuance issuance;
+
+  DraftIssuance({
     required this.id,
     required this.responsible_office,
     required this.issuance,
-   
   });
 
   factory DraftIssuance.fromJson(Map<String, dynamic> json) {
     return DraftIssuance(
       id: json['id'],
-      responsible_office: json['responsible_office'], 
+      responsible_office: json['responsible_office'],
       issuance: Issuance.fromJson(json['issuance']),
     );
   }
@@ -244,29 +241,49 @@ class Issuance {
   final String title;
   final String referenceNo;
   final String keyword;
-  final String urlLink; 
-  final String type; 
+  final String urlLink;
+  final String type;
 
-  Issuance({
-    required this.id,
-    required this.date,
-    required this.title,
-    required this.referenceNo,
-    required this.keyword,
-    required this.urlLink,
-    required this.type
-  });
+  Issuance(
+      {required this.id,
+      required this.date,
+      required this.title,
+      required this.referenceNo,
+      required this.keyword,
+      required this.urlLink,
+      required this.type});
 
   factory Issuance.fromJson(Map<String, dynamic> json) {
     return Issuance(
-      id: json['id'],
-      date: json['date'],
-      title: json['title'],
-      referenceNo: json['reference_no'],
-      keyword: json['keyword'],
-      urlLink: json['url_link'],
-      type: json['type']
-    );
+        id: json['id'],
+        date: json['date'],
+        title: json['title'],
+        referenceNo: json['reference_no'],
+        keyword: json['keyword'],
+        urlLink: json['url_link'],
+        type: json['type']);
   }
 }
 
+String getTypeForDownload(String issuanceType) {
+  // Map issuance types to corresponding download types
+  switch (issuanceType) {
+    case 'Latest Issuances':
+      return 'Latest Issuances';
+    case 'Joint Circulars':
+      return 'Joint Circulars';
+    case 'Memo Circulars':
+      return 'Memo Circulars';
+    case 'Presidential Directives':
+      return 'Presidential Directives';
+    case 'Draft Issuances':
+      return 'Draft Issuances';
+    case 'Republic Acts':
+      return 'Republic Acts';
+    case 'Legal Opinions':
+      return 'Legal Opinions';
+
+    default:
+      return 'Other';
+  }
+}
