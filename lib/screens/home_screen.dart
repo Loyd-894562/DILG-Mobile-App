@@ -164,12 +164,13 @@ class _HomeScreenState extends State<HomeScreen> {
     // Get the first 5 recently opened issuances
     List<Issuance> recentIssuances = _recentlyOpenedIssuances.take(5).toList();
 
-    Widget seeMoreLink = Container(); // Initially, don't show the link
+    // Initially, don't show the "See more" link
+    Widget seeMoreLink = Container();
 
     // Show the "See more" link only if there are more than 5 recent issuances
     if (_recentlyOpenedIssuances.length > 5) {
-      seeMoreLink = GestureDetector(
-        onTap: () {
+      seeMoreLink = TextButton(
+        onPressed: () {
           // Navigate to the Library screen
           Navigator.push(
             context,
@@ -203,12 +204,18 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text(
-            'Recently Opened Issuances',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Recently Opened Issuances',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              seeMoreLink,
+            ],
           ),
         ),
         const SizedBox(height: 16.0),
@@ -234,32 +241,37 @@ class _HomeScreenState extends State<HomeScreen> {
               return Column(
                 children: [
                   ListTile(
-                    title: Text(
-                      issuance.title.length > 25
-                          ? '${issuance.title.substring(0, 25)}...' // Display only the first 25 characters
-                          : issuance.title,
-                    ),
-                    trailing: ElevatedButton(
-                      onPressed: () {
-                        // Remove the current issuance from the list
-                        setState(() {
-                          _recentlyOpenedIssuances.remove(issuance);
-                        });
-                        // Add the current issuance to the top of the list
-                        setState(() {
-                          _recentlyOpenedIssuances.insert(0, issuance);
-                        });
-                        // Navigate to the PDF screen when the button is pressed
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => IssuancePDFScreen(
-                              title: issuance.title,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Text('View'),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          issuance.title.length > 20
+                              ? '${issuance.title.substring(0, 20)}...' // Display only the first 25 characters
+                              : issuance.title,
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Remove the current issuance from the list
+                            setState(() {
+                              _recentlyOpenedIssuances.remove(issuance);
+                            });
+                            // Add the current issuance to the top of the list
+                            setState(() {
+                              _recentlyOpenedIssuances.insert(0, issuance);
+                            });
+                            // Navigate to the PDF screen when the button is pressed
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => IssuancePDFScreen(
+                                  title: issuance.title,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Text('View'),
+                        ),
+                      ],
                     ),
                   ),
                   const Divider(),
@@ -267,7 +279,6 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
           }).toList(),
-          seeMoreLink, // Show the "See more" link
         ],
       ],
     );

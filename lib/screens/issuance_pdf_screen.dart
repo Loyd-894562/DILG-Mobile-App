@@ -14,6 +14,8 @@ class IssuancePDFScreen extends StatefulWidget {
 
 class _IssuancePDFScreenState extends State<IssuancePDFScreen> {
   String? _pdfPath;
+  bool _loading = true;
+  bool _error = false;
 
   @override
   void initState() {
@@ -22,18 +24,35 @@ class _IssuancePDFScreenState extends State<IssuancePDFScreen> {
   }
 
   Future<void> _loadPDF() async {
+    setState(() {
+      _loading = true; // Set loading to true before starting loading
+      _error = false; // Reset error flag
+    });
+
     final appDir = await getExternalStorageDirectory();
     print('Root directory path: ${appDir?.path}');
     if (appDir == null) {
       print('Error: Failed to get the root directory path');
+      setState(() {
+        _loading = false;
+        _error = true;
+      });
       return;
     }
 
     final rootDirectory = Directory(appDir.path);
     final pdfPath = await _findPDF(rootDirectory, widget.title);
-    setState(() {
-      _pdfPath = pdfPath;
-    });
+    if (pdfPath == null) {
+      setState(() {
+        _loading = false;
+        _error = true;
+      });
+    } else {
+      setState(() {
+        _pdfPath = pdfPath;
+        _loading = false;
+      });
+    }
   }
 
   Future<String?> _findPDF(Directory directory, String title) async {
@@ -61,19 +80,30 @@ class _IssuancePDFScreenState extends State<IssuancePDFScreen> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: _pdfPath != null
+      body: _loading
           ? Center(
-              child: PDFView(
-                filePath: _pdfPath!,
-                fitPolicy: FitPolicy.WIDTH,
-              ),
+              child: CircularProgressIndicator(),
             )
-          : Center(
-              child: Text(
-                'PDF Not Found',
-                style: TextStyle(fontSize: 24),
-              ),
-            ),
+          : _error
+              ? Center(
+                  child: Text(
+                    'PDF Not Available',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                )
+              : _pdfPath != null
+                  ? Center(
+                      child: PDFView(
+                        filePath: _pdfPath!,
+                        fitPolicy: FitPolicy.WIDTH,
+                      ),
+                    )
+                  : Center(
+                      child: Text(
+                        'Loading PDF',
+                        style: TextStyle(fontSize: 24),
+                      ),
+                    ),
     );
   }
 }
