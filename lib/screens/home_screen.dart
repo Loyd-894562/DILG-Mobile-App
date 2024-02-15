@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'search_screen.dart';
 import 'library_screen.dart';
 import 'sidebar.dart';
-import 'latest_issuances.dart';
+import 'edit_user.dart';
+import 'bottom_navigation.dart';
+import 'issuance_pdf_screen.dart'; // Import the new screen
+
+class Issuance {
+  final String title;
+
+  Issuance({required this.title});
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -17,155 +26,250 @@ class _HomeScreenState extends State<HomeScreen> {
     'Home',
     'Search',
     'Library',
-    'Latest Issuances'
+    'View Profile',
   ];
+
+  DateTime? currentBackPressTime;
+
+  List<Issuance> _recentlyOpenedIssuances = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecentIssuances();
+  }
+
+  void _loadRecentIssuances() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? recentIssuances = prefs.getStringList('recentIssuances');
+    if (recentIssuances != null) {
+      setState(() {
+        _recentlyOpenedIssuances =
+            recentIssuances.map((title) => Issuance(title: title)).toList();
+      });
+    }
+  }
+
+  void _saveRecentIssuances() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> titles =
+        _recentlyOpenedIssuances.map((issuance) => issuance.title).toList();
+    await prefs.setStringList('recentIssuances', titles);
+  }
+
+  @override
+  void dispose() {
+    _saveRecentIssuances();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _drawerMenuItems[_currentIndex.clamp(0, _drawerMenuItems.length - 1)],
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: _currentIndex == 0
-            ? Builder(
-                builder: (context) => IconButton(
-                  icon: Icon(Icons.menu, color: Colors.blue[900]),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
-                ),
-              )
-            : null,
-        automaticallyImplyLeading: true,
-      ),
-      body: _buildBody(),
-      drawer: Sidebar(
-        currentIndex: _currentIndex,
-        onItemSelected: (index) {
-          _navigateToSelectedPage(context, index);
-        },
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (int index) {
+    return WillPopScope(
+      onWillPop: () async {
+        if (_currentIndex != 0) {
           setState(() {
-            _currentIndex = index.clamp(0, _drawerMenuItems.length - 1);
+            _currentIndex = 0;
           });
-        },
-        backgroundColor: Colors.blue[900],
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white.withOpacity(0.5),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+          return false;
+        } else if (currentBackPressTime == null ||
+            DateTime.now().difference(currentBackPressTime!) >
+                Duration(seconds: 2)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Press back again to exit'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          currentBackPressTime = DateTime.now();
+          return false;
+        } else {
+          return true;
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            _drawerMenuItems[
+                _currentIndex.clamp(0, _drawerMenuItems.length - 1)],
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books),
-            label: 'Library',
-          ),
-          
-        ],
+          leading: _currentIndex == 0
+              ? Builder(
+                  builder: (context) => IconButton(
+                    icon: Icon(Icons.menu, color: Colors.blue[900]),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                  ),
+                )
+              : null,
+          automaticallyImplyLeading: true,
+        ),
+        body: _buildBody(),
+        drawer: Sidebar(
+          currentIndex: _currentIndex,
+          onItemSelected: (index) {
+            setState(() {
+              _currentIndex = index.clamp(0, _drawerMenuItems.length - 1);
+            });
+          },
+        ),
+        bottomNavigationBar: BottomNavigation(
+          currentIndex: _currentIndex,
+          onTabTapped: (index) {
+            setState(() {
+              _currentIndex = index.clamp(0, _drawerMenuItems.length - 1);
+            });
+          },
+        ),
       ),
     );
-  }
-
-  bool _handleBackButton() {
-    // Handle back button press logic here
-    // You can check conditions and navigate accordingly
-    // For example, if you are on a specific screen, navigate to the home screen
-    if (_currentIndex != 0) {
-      setState(() {
-        _currentIndex = 0;
-      });
-      return false; // Prevent back navigation
-    }
-    return true; // Allow back navigation
   }
 
   Widget _buildBody() {
     switch (_currentIndex) {
       case 0:
-        // Home Screen
         return ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            // Recently Opened Issuances
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Recently Opened Issuances',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  _buildRecentIssuances(),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            // Recently Downloaded Issuances
-            
+            _buildRecentIssuances(),
           ],
         );
       case 1:
-        // Search Screen
         return SearchScreen();
       case 2:
-        // Library Screen
-        return LibraryScreen();
+        return LibraryScreen(
+          onFileOpened: (title, subtitle) {
+            // Add the opened file to recently opened issuances
+            setState(() {
+              _recentlyOpenedIssuances.insert(
+                0,
+                Issuance(title: title),
+              );
+            });
+          },
+        );
       case 3:
-        return LatestIssuances();
+        return EditUser();
       default:
         return Container();
     }
   }
 
   Widget _buildRecentIssuances() {
-    return SizedBox(
-      height: 200.0,
-      child: ListView.builder(
-        itemCount: 5,
-        itemBuilder: (context, index) {
-          return Card(
-            child: ListTile(
-              title: Text('Opened Issuance $index'),
+    // Map to keep track of seen titles
+    Map<String, Issuance> seenTitles = {};
+
+    // Get the first 5 recently opened issuances
+    List<Issuance> recentIssuances = _recentlyOpenedIssuances.take(5).toList();
+
+    Widget seeMoreLink = Container(); // Initially, don't show the link
+
+    // Show the "See more" link only if there are more than 5 recent issuances
+    if (_recentlyOpenedIssuances.length > 5) {
+      seeMoreLink = GestureDetector(
+        onTap: () {
+          // Navigate to the Library screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LibraryScreen(
+                onFileOpened: (title, subtitle) {
+                  // Add the opened file to recently opened issuances
+                  setState(() {
+                    _recentlyOpenedIssuances.insert(
+                      0,
+                      Issuance(title: title),
+                    );
+                  });
+                },
+              ),
             ),
           );
         },
-      ),
-    );
-  }
-
-  
-  void _navigateToSelectedPage(BuildContext context, int index) {
-    switch (index) {
-      case 1:
-        _navigateToLatestIssuances(context);
-        break;
-      // Add conditions for other pages if needed
+        child: Text(
+          'See more',
+          style: TextStyle(
+            color: Colors.blue, // Set the color to blue
+            decoration: TextDecoration.none, // Remove underline
+          ),
+        ),
+      );
     }
-  }
 
-  void _navigateToLatestIssuances(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => LatestIssuances(),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            'Recently Opened Issuances',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16.0),
+        if (_recentlyOpenedIssuances.isEmpty)
+          Center(
+            child: Text(
+              'No recently opened Issuance/s',
+              style: TextStyle(
+                fontSize: 16,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        if (_recentlyOpenedIssuances.isNotEmpty) ...[
+          ...recentIssuances.map((issuance) {
+            // Check if the title has already been seen
+            if (seenTitles.containsKey(issuance.title)) {
+              // If yes, skip displaying this issuance
+              return Container();
+            } else {
+              // Otherwise, add it to seen titles and display it
+              seenTitles[issuance.title] = issuance;
+              return Column(
+                children: [
+                  ListTile(
+                    title: Text(
+                      issuance.title.length > 25
+                          ? '${issuance.title.substring(0, 25)}...' // Display only the first 25 characters
+                          : issuance.title,
+                    ),
+                    trailing: ElevatedButton(
+                      onPressed: () {
+                        // Remove the current issuance from the list
+                        setState(() {
+                          _recentlyOpenedIssuances.remove(issuance);
+                        });
+                        // Add the current issuance to the top of the list
+                        setState(() {
+                          _recentlyOpenedIssuances.insert(0, issuance);
+                        });
+                        // Navigate to the PDF screen when the button is pressed
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => IssuancePDFScreen(
+                              title: issuance.title,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Text('View'),
+                    ),
+                  ),
+                  const Divider(),
+                ],
+              );
+            }
+          }).toList(),
+          seeMoreLink, // Show the "See more" link
+        ],
+      ],
     );
   }
 }

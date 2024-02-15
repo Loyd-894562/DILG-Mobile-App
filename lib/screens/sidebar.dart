@@ -63,7 +63,8 @@ class Sidebar extends StatelessWidget {
             _buildSidebarItem(Icons.info, 'About', 8, context),
             _buildSidebarItem(Icons.people, 'Developers', 9, context),
             Divider(color: Colors.white),
-          _buildSidebarItem(Icons.exit_to_app, 'Logout', 10, context, onPressed: () async {
+            _buildSidebarItem(Icons.exit_to_app, 'Logout', 10, context,
+                onPressed: () async {
               try {
                 // Call the logout method (assuming you've implemented it)
                 await AuthServices.logout();
@@ -78,17 +79,17 @@ class Sidebar extends StatelessWidget {
                 // Handle the error, if any
               }
             }),
-
-
           ],
         ),
       ),
     );
   }
-Future<void> clearToken() async {
-  final prefs = await SharedPreferences.getInstance();
-  prefs.remove('token');
-}
+
+  Future<void> clearToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('token');
+  }
+
   Widget _getPageByIndex(int index) {
     switch (index) {
       case 0:

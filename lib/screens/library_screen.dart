@@ -1,12 +1,15 @@
-import 'dart:convert';
+import 'dart:convert'; // Add this import statement
+
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'downloadedfile_screen.dart';
-import 'dart:io'; // Import 'dart:io' for File and Directory
-import 'package:path_provider/path_provider.dart'; // Import 'package:path_provider/path_provider.dart' for getApplicationDocumentsDirectory
-
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 class LibraryScreen extends StatefulWidget {
+  final Function(String, String) onFileOpened;
+
+  LibraryScreen({required this.onFileOpened});
+
   @override
   _LibraryScreenState createState() => _LibraryScreenState();
 }
@@ -16,17 +19,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
   List<String> downloadedFiles = [];
   List<String> filteredFiles = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _loadRootDirectory();
+  }
 
-
-//For Latest Issuances
- @override
-void initState() {
-  super.initState();
-  _loadRootDirectory();
-}
-
-void _loadRootDirectory() async {
-
+  void _loadRootDirectory() async {
     final appDir = await getExternalStorageDirectory();
     print('Root directory path: ${appDir?.path}');
     if (appDir == null) {
@@ -35,44 +34,38 @@ void _loadRootDirectory() async {
     }
 
     final rootDirectory = Directory(appDir.path);
-    await loadDownloadedFiles(rootDirectory); // Use await here
+    await loadDownloadedFiles(rootDirectory);
 
-    // Populate filteredFiles with all downloaded files
     setState(() {
       filteredFiles.addAll(downloadedFiles);
     });
   }
-Future<void> loadDownloadedFiles(Directory directory) async {
-  // Map to store files grouped by their folder names
-   List<FileSystemEntity> entities = directory.listSync();
 
-  // Iterate over each entity in the directory
-  for (var entity in entities) {
-    // If the entity is a directory, recursively call loadDownloadedFiles on it
-    if (entity is Directory) {
-      await loadDownloadedFiles(entity); // Use await here
+  Future<void> loadDownloadedFiles(Directory directory) async {
+    List<FileSystemEntity> entities = directory.listSync();
+
+    for (var entity in entities) {
+      if (entity is Directory) {
+        await loadDownloadedFiles(entity);
+      } else if (entity is File && entity.path.toLowerCase().endsWith('.pdf')) {
+        downloadedFiles.add(entity.path);
+      }
     }
-    // If the entity is a file and ends with .pdf, add its path to downloadedFiles
-    else if (entity is File && entity.path.toLowerCase().endsWith('.pdf')) {
-      downloadedFiles.add(entity.path);
-    }
+    downloadedFiles.sort();
   }
-  // Sort the downloaded files alphabetically
-  downloadedFiles.sort();
-  // Add the PDF files from the current directory to the downloadedFiles list
-  
-}
 
-//for Latest Issuances - API@override
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Library'),
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildSearchAndFilterRow(),
-            _buildPdf(context),
+            _buildPdf(),
           ],
         ),
       ),
@@ -107,7 +100,7 @@ Future<void> loadDownloadedFiles(Directory directory) async {
     );
   }
 
-  Widget _buildPdf(BuildContext context) {
+  Widget _buildPdf() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -143,7 +136,7 @@ Future<void> loadDownloadedFiles(Directory directory) async {
                     ),
                     child: ElevatedButton(
                       onPressed: () {
-                        openPdfViewer(context, file);
+                        openPdfViewer(context, file, widget.onFileOpened);
                       },
                       style: ElevatedButton.styleFrom(
                         shape: RoundedRectangleBorder(
@@ -168,8 +161,6 @@ Future<void> loadDownloadedFiles(Directory directory) async {
     );
   }
 
-
-
   void _filterFiles(String query) {
     setState(() {
       filteredFiles = downloadedFiles
@@ -178,36 +169,23 @@ Future<void> loadDownloadedFiles(Directory directory) async {
     });
   }
 }
-Future<void> openPdfViewer(BuildContext context, String filePath) async {
-  Navigator.push(
+
+Future<void> openPdfViewer(BuildContext context, String filePath,
+    Function(String, String) onFileOpened) async {
+  await Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) => PDFView(
         filePath: filePath,
-        // Implement additional options if needed
         enableSwipe: true,
         swipeHorizontal: true,
         autoSpacing: true,
         pageSnap: true,
-        onViewCreated: (PDFViewController controller) {
-          // You can use the controller to interact with the PDFView
-        },
-        // onPageChanged: (int page, int total) {
-        //   // Handle page changes if needed
-        // },
+        onViewCreated: (PDFViewController controller) {},
       ),
     ),
   );
-}
 
-String getFolderName(String path) {
-  List<String> parts = path.split('/');
-  if (parts.length > 1) {
-    String folder = parts[parts.length - 2]; // Get the second-to-last part of the path
-    print('Folder name extracted: $folder');
-    return folder;
-  }
-  // Default category if no matching folder is found
-  print('No folder name found in path: $path');
-  return 'Other';
+  String fileName = filePath.split('/').last;
+  onFileOpened(fileName, filePath);
 }

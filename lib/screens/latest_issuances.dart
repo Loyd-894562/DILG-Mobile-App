@@ -74,7 +74,9 @@ class _LatestIssuancesState extends State<LatestIssuances> {
         ),
         backgroundColor: Colors.blue[900],
       ),
-      body: _buildBody(),
+      body: SingleChildScrollView(
+        child: _buildBody(),
+      ),
       drawer: Sidebar(
         currentIndex: 1,
         onItemSelected: (index) {
@@ -87,143 +89,150 @@ class _LatestIssuancesState extends State<LatestIssuances> {
   Widget _buildBody() {
     TextEditingController searchController = TextEditingController();
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Filter Category Dropdown
-          Container(
-            padding: EdgeInsets.all(16.0),
-            child: DropdownButton<String>(
-              value: selectedCategory,
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    selectedCategory = newValue;
-                  });
-                }
-              },
-              items: categories.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: selectedCategory == value
-                      ? Text(
-                          _truncateText(
-                              value, 30), // Adjust the maxLength as needed
-                          style: TextStyle(
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        )
-                      : Text(value),
-                );
-              }).toList(),
-            ),
+    return Column(
+      children: [
+        // Filter Category Dropdown
+        Container(
+          padding: EdgeInsets.all(16.0),
+          child: DropdownButton<String>(
+            value: selectedCategory,
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                setState(() {
+                  selectedCategory = newValue;
+                });
+              }
+            },
+            items: categories.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: selectedCategory == value
+                    ? Text(
+                        _truncateText(
+                            value, 30), // Adjust the maxLength as needed
+                        style: TextStyle(
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )
+                    : Text(value),
+              );
+            }).toList(),
           ),
+        ),
 
-          // Search Input
-          Container(
-            // margin: EdgeInsets.only(top: 4.0),
-            padding: EdgeInsets.all(12.0),
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey[400]!),
-                  borderRadius: BorderRadius.circular(8),
+        // Search Input
+        Container(
+          padding: EdgeInsets.all(12.0),
+          child: TextField(
+            controller: searchController,
+            decoration: InputDecoration(
+              hintText: 'Search...',
+              prefixIcon: Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey[400]!),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onChanged: (value) {
+              // Handle search input changes
+            },
+          ),
+        ), // Adjust the spacing as needed
+
+        // Sample Table Section
+        Container(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Latest',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              onChanged: (value) {
-                // Handle search input changes
-              },
-            ),
-          ), // Adjust the spacing as needed
-
-          // Sample Table Section
-          Container(
-            // padding: EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Latest',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  // Add margin to the left
-                  textAlign: TextAlign.left,
-                  // Use the EdgeInsets.only to specify margin for specific sides
-                  // In this case, only the left margin is set to 3.0
-                  // margin: EdgeInsets.only(left: 3.0),
-                ),
-                SizedBox(height: 16.0),
-                for (int index = 0; index < _latestIssuances.length; index++)
-                  InkWell(
-                    onTap: () {
-                      _navigateToDetailsPage(context, _latestIssuances[index]);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
+              SizedBox(height: 16.0),
+              SizedBox(
+                // Set a maximum height for the ListView
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: ListView.builder(
+                  itemCount: _latestIssuances.length,
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                      onTap: () {
+                        _navigateToDetailsPage(
+                          context,
+                          _latestIssuances[index],
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
                               color: const Color.fromARGB(255, 203, 201, 201),
-                              width: 1.0),
+                              width: 1.0,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Card(
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Icon(Icons.article, color: Colors.blue[900]),
-                              SizedBox(width: 16.0),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _latestIssuances[index].issuance.title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
+                        child: Card(
+                          elevation: 0,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.article,
+                                  color: Colors.blue[900],
+                                ),
+                                SizedBox(width: 16.0),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _latestIssuances[index].issuance.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(height: 4.0),
-                                    Text(
-                                      'Ref #${_latestIssuances[index].issuance.referenceNo}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
+                                      SizedBox(height: 4.0),
+                                      Text(
+                                        'Ref #${_latestIssuances[index].issuance.referenceNo}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              SizedBox(width: 16.0),
-                              Text(
-                                DateFormat('MMMM dd, yyyy').format(
-                                  DateTime.parse(
-                                      _latestIssuances[index].issuance.date),
+                                SizedBox(width: 16.0),
+                                Text(
+                                  DateFormat('MMMM dd, yyyy').format(
+                                    DateTime.parse(
+                                        _latestIssuances[index].issuance.date),
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                  ),
                                 ),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-              ],
-            ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -274,7 +283,6 @@ class LatestIssuance {
     return LatestIssuance(
       id: json['id'],
       category: json['category'],
-      // title: json['issuance']['title'],
       outcome: json['outcome'],
       issuance: Issuance.fromJson(json['issuance']),
     );
@@ -313,7 +321,6 @@ class Issuance {
 }
 
 String getTypeForDownload(String issuanceType) {
-  // Map issuance types to corresponding download types
   switch (issuanceType) {
     case 'Latest Issuance':
       return 'Latest Issuance';
