@@ -169,46 +169,41 @@ class _LibraryScreenState extends State<LibraryScreen> {
           Column(
             children: [
               SizedBox(height: 10),
-              Column(
-                children: filteredFiles.map((file) {
-                  return Container(
-                    margin: EdgeInsets.symmetric(vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(10),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: filteredFiles.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final String file = filteredFiles[index];
+                  return Dismissible(
+                    key: Key(file),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: EdgeInsets.only(right: 20.0),
+                      color: Colors.red,
+                      child: Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                      ),
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              openPdfViewer(context, file, widget.onFileOpened);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                file.split('/').last,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
-                              ),
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            _showDeleteConfirmationDialog(file);
-                          },
-                        ),
-                      ],
+                    confirmDismiss: (direction) async {
+                      return await _showDeleteConfirmationDialog(context, file);
+                    },
+                    onDismissed: (direction) {},
+                    child: ListTile(
+                      title: Text(
+                        file.split('/').last,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      ),
+                      leading: Icon(Icons.picture_as_pdf),
+                      onTap: () {
+                        openPdfViewer(context, file, widget.onFileOpened);
+                      },
                     ),
                   );
-                }).toList(),
+                },
               ),
             ],
           ),
@@ -236,8 +231,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
     });
   }
 
-  void _showDeleteConfirmationDialog(String filePath) {
-    showDialog(
+  Future<bool> _showDeleteConfirmationDialog(
+      BuildContext context, String filePath) async {
+    bool? result = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -246,13 +242,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(false); // Return false when cancelled
               },
               child: Text("Cancel"),
             ),
             TextButton(
               onPressed: () {
-                _deleteFile(filePath);
+                _deleteFile(filePath); // Delete the file when confirmed
               },
               child: Text("Delete"),
             ),
@@ -260,6 +256,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         );
       },
     );
+    return result ?? false;
   }
 
   void _deleteFile(String filePath) {
