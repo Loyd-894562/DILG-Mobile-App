@@ -253,7 +253,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
             TextButton(
               onPressed: () {
                 _deleteFile(filePath);
-                Navigator.of(context).pop();
               },
               child: Text("Delete"),
             ),
@@ -269,9 +268,49 @@ class _LibraryScreenState extends State<LibraryScreen> {
       file.deleteSync();
       downloadedFiles.remove(filePath);
       filteredFiles.remove(filePath);
+
+      // Show a confirmation dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Success"),
+            content: Text("The file has been successfully deleted."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Dismiss the success dialog
+                  Navigator.of(context)
+                      .pop(); // Dismiss the confirmation dialog
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+
       setState(() {});
     } catch (e) {
       print("Failed to delete file: $e");
+      // Show an error dialog if deletion fails
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Error"),
+            content: Text("Failed to delete the file."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 }
