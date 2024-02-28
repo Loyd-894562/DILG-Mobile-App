@@ -57,6 +57,13 @@ class _HomeScreenState extends State<HomeScreen> {
     await prefs.setStringList('recentIssuances', titles);
   }
 
+  void _clearRecentIssuances() {
+    setState(() {
+      _recentlyOpenedIssuances.clear();
+    });
+    _saveRecentIssuances();
+  }
+
   @override
   void dispose() {
     _saveRecentIssuances();
@@ -279,6 +286,41 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
           }).toList(),
+          // Add clear list button
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: ElevatedButton(
+              onPressed: () {
+                // Prompt the user to confirm before clearing the list
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Clear List'),
+                      content: Text(
+                          'Are you sure you want to clear the list of recently opened issuances?'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Close the dialog
+                          },
+                          child: Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            _clearRecentIssuances(); // Clear the list
+                            Navigator.of(context).pop(); // Close the dialog
+                          },
+                          child: Text('Clear'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: Text('Clear List'),
+            ),
+          ),
         ],
       ],
     );

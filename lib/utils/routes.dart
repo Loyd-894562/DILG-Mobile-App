@@ -11,6 +11,7 @@ import '../screens/search_screen.dart';
 import '../screens/library_screen.dart';
 import '../screens/intro_section.dart';
 import '../screens/login_screen.dart';
+import 'package:DILGDOCS/screens/library_screen.dart';
 
 class Routes {
   static const String home = '/';
@@ -48,5 +49,9 @@ class Routes {
             title: 'login',
           ),
     };
+  }
+
+  static void navigateToLibrary(BuildContext context) {
+    Navigator.pushNamed(context, library);
   }
 }
