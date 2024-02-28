@@ -6,6 +6,7 @@ import 'sidebar.dart';
 import 'edit_user.dart';
 import 'bottom_navigation.dart';
 import 'issuance_pdf_screen.dart'; // Import the new screen
+import 'package:url_launcher/url_launcher.dart'; // Import url_launcher package
 
 class Issuance {
   final String title;
@@ -135,33 +136,87 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBody() {
-    switch (_currentIndex) {
-      case 0:
-        return ListView(
-          padding: const EdgeInsets.all(16.0),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
           children: [
-            _buildRecentIssuances(),
+            Row(
+              children: [
+                Image.asset(
+                  'assets/dilg-main.png',
+                  width: 60.0,
+                  height: 60.0,
+                ),
+                const SizedBox(width: 10.0),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'REPUBLIC OF THE PHILIPPINES',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                    Text(
+                      'DEPARTMENT OF THE INTERIOR AND LOCAL GOVERNMENT',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 8,
+                      ),
+                    ),
+                    Text(
+                      'BOHOL PROVINCE',
+                      style: TextStyle(
+                        fontSize: 8,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 30.0),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'News and Updates:',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 250.0, // Adjust the height as needed
+              child: _buildHorizontalScrollableCards(),
+            ),
+            _buildWideButton('ABOUT', 'https://dilgbohol.com'),
+            _buildWideButton(
+                'THE PROVINCIAL DIRECTOR', 'https://dilgbohol.com'),
+            _buildWideButton('VISION AND MISSION', 'https://dilgbohol.com'),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical, // Ensure vertical scrolling
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildRecentIssuances(),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16.0),
           ],
-        );
-      case 1:
-        return SearchScreen();
-      case 2:
-        return LibraryScreen(
-          onFileOpened: (title, subtitle) {
-            // Add the opened file to recently opened issuances
-            setState(() {
-              _recentlyOpenedIssuances.insert(
-                0,
-                Issuance(title: title),
-              );
-            });
-          },
-        );
-      case 3:
-        return EditUser();
-      default:
-        return Container();
-    }
+        ),
+      ),
+    );
   }
 
   Widget _buildRecentIssuances() {
@@ -323,6 +378,183 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildWideButton(String label, String url) {
+    return GestureDetector(
+      onTap: () {
+        _launchURL(url);
+      },
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 8.0),
+        decoration: BoxDecoration(
+          color: Colors.blue[600], // Adjust the color as needed
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward,
+              color: Colors.white,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Function to launch URLs
+  void _launchURL(String url) async {
+    try {
+      if (await canLaunch(url)) {
+        await launch(url);
+      } else {
+        throw 'Could not launch $url';
+      }
+    } catch (e) {
+      print('Error launching URL: $e');
+    }
+  }
+
+  PageController _pageController = PageController();
+
+  Widget _buildHorizontalScrollableCards() {
+    return Container(
+      height: 150.0,
+      child: PageView.builder(
+        controller: _pageController,
+        scrollDirection: Axis.horizontal,
+        itemCount: 6, // Change the itemCount to 6 for 6 cards
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _buildCard('assets/amu1.png', 'Card Title 0', index);
+          } else if (index == 1) {
+            return _buildCard('assets/amu2.png', 'Card Title 1', index);
+          } else if (index == 2) {
+            return _buildCard('assets/amu3.png', 'Card Title 2', index);
+          } else if (index == 3) {
+            return _buildCard('assets/amu4.png', 'Card Title 3', index);
+          } else if (index == 4) {
+            return _buildCard('assets/amu5.png', 'Card Title 4', index);
+          } else if (index == 5) {
+            // Display "See More" container for index 5
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 6.0),
+              child: Card(
+                elevation: 5.0,
+                child: InkWell(
+                  onTap: () {
+                    // Handle "See More" click
+                    print('See More clicked');
+                  },
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        // Define the URL to redirect to
+                        String url = 'https://dilgbohol.com/news_update';
+                        // Open the URL in a web browser
+                        launch(url);
+                      },
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Go to News Updates',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20.0,
+                            ),
+                          ),
+                          SizedBox(
+                              height:
+                                  5), // Adjust spacing between text and icon
+                          Icon(
+                            Icons.arrow_forward,
+                            size: 25.0,
+                            color: Colors.blue,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          } else {}
+        },
+      ),
+    );
+  }
+
+  Widget _buildCard(String imagePath, String title, int index) {
+    return GestureDetector(
+      onTap: () {
+        // Handle card click
+        print('Card $index clicked');
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12.0),
+        width: 200.0,
+        child: Card(
+          elevation: 5.0,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image container
+              Container(
+                height: 115.0,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(imagePath),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              // Title container
+              Container(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.0,
+                  ),
+                ),
+              ),
+              // Content container
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                  style: TextStyle(fontSize: 12.0),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              // Date container
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Date: ${DateTime.now().toString()}',
+                  style: TextStyle(fontSize: 10.0),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
