@@ -173,21 +173,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 const SizedBox(height: 30.0),
-                // Align(
-                //   alignment: Alignment.centerLeft,
-                //   child: Text(
-                //     'News and Updates:',
-                //     style: TextStyle(
-                //       fontSize: 20,
-                //       fontWeight: FontWeight.bold,
-                //     ),
-                //   ),
-                // ),
-                _buildWideButton('NEWS AND UPDATES', 'https://dilgbohol.com'),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'News and Updates:',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                _buildWideButton('ABOUT', 'https://dilgbohol.com'),
                 _buildWideButton(
                     'THE PROVINCIAL DIRECTOR', 'https://dilgbohol.com'),
                 _buildWideButton('VISION AND MISSION', 'https://dilgbohol.com'),
-                _buildRecentIssuances(), // Display recent issuances here
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical, // Ensure vertical scrolling
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildRecentIssuances(),
+                      ],
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 16.0),
               ],
             ),
@@ -206,13 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             });
           },
-          onFileDeleted: (filePath) {
-            // Remove the deleted file from recently opened issuances
-            setState(() {
-              _recentlyOpenedIssuances
-                  .removeWhere((issuance) => issuance.title == filePath);
-            });
-          },
+          onFileDeleted: null, // Pass null for onFileDeleted
         );
       case 3:
         return EditUser();
@@ -251,7 +260,6 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context) => LibraryScreen(
                 onFileOpened:
                     (title, subtitle) {}, // Provide dummy function or null
-                onFileDeleted: (filePath) {}, // Provide dummy function or null
               ),
             ),
           );
