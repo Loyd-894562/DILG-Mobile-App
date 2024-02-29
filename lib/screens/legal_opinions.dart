@@ -1,10 +1,15 @@
 import 'dart:convert';
+import 'package:DILGDOCS/Services/globals.dart';
+import 'package:DILGDOCS/models/legal_opinions.dart';
+import 'package:DILGDOCS/screens/draft_issuances.dart';
+import 'package:DILGDOCS/screens/file_utils.dart';
+import 'package:DILGDOCS/screens/joint_circulars.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+
 import 'sidebar.dart';
 import 'details_screen.dart';
 import 'package:http/http.dart' as http;
-import 'package:DILGDOCS/screens/draft_issuances.dart' as draft;
 
 class LegalOpinions extends StatefulWidget {
   @override
@@ -12,7 +17,9 @@ class LegalOpinions extends StatefulWidget {
 }
 
 class _LegalOpinionsState extends State<LegalOpinions> {
+  TextEditingController _searchController = TextEditingController();
   List<LegalOpinion> _legalOpinions = [];
+  List<LegalOpinion> _filteredLegalOpinions = [];
 
   @override
   void initState() {
@@ -22,7 +29,7 @@ class _LegalOpinionsState extends State<LegalOpinions> {
 
   Future<void> fetchLegalOpinions() async {
     final response = await http.get(
-      Uri.parse('https://issuances.dilgbohol.com/api/legal_opinions'),
+      Uri.parse('$baseURL/legal_opinions'),
       headers: {
         'Accept': 'application/json',
       },
@@ -34,9 +41,10 @@ class _LegalOpinionsState extends State<LegalOpinions> {
       setState(() {
         _legalOpinions =
             data.map((item) => LegalOpinion.fromJson(item)).toList();
+        _filteredLegalOpinions = _legalOpinions;
       });
     } else {
-      print('Failed to load latest legal opinions');
+      print('Failed to load latest opinions');
       print('Response status code: ${response.statusCode}');
       print('Response body: ${response.body}');
     }
@@ -61,126 +69,140 @@ class _LegalOpinionsState extends State<LegalOpinions> {
       ),
       body: _buildBody(),
       drawer: Sidebar(
-        currentIndex: 7, // Adjust the index based on your sidebar menu
+        currentIndex: 7,
         onItemSelected: (index) {
-          // Handle item selection if needed
-          Navigator.pop(context); // Close the drawer after handling selection
+          Navigator.pop(context);
         },
       ),
     );
   }
 
   Widget _buildBody() {
-    TextEditingController searchController = TextEditingController();
-
     return SingleChildScrollView(
       child: Column(
         children: [
           // Search Input
           Container(
-            margin: EdgeInsets.only(bottom: 8.0),
-            padding: EdgeInsets.symmetric(
-                horizontal: 8.0, vertical: 4.0), // Adjust padding
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[400]!),
-              borderRadius: BorderRadius.circular(12), // Adjust borderRadius
-            ),
+            margin: EdgeInsets.only(top: 16.0),
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: TextField(
-              controller: searchController,
-              style: TextStyle(fontSize: 14), // Adjust fontSize
+              controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search...',
-                border: InputBorder.none,
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: Icon(Icons.search, color: Colors.grey),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 16.0),
               ),
+              style: TextStyle(fontSize: 16.0),
               onChanged: (value) {
-                // Handle search input changes
+                // Call the function to filter the list based on the search query
+                _filterLegalOpinions(value);
               },
             ),
           ),
 
-          // Category Dropdown
-
-          // SizedBox(height: 15.0),
-
-          // Sample Table Section
-          Container(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Legal Opinions',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 16.0),
-                for (int index = 0; index < _legalOpinions.length; index++)
-                  InkWell(
-                    onTap: () {
-                      _navigateToDetailsPage(context, _legalOpinions[index]);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                              color: const Color.fromARGB(255, 203, 201, 201),
-                              width: 1.0),
-                        ),
+          // Display the filtered presidential directives
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16.0),
+              for (int index = 0;
+                  index < _filteredLegalOpinions.length;
+                  index++)
+                InkWell(
+                  onTap: () {
+                    _navigateToDetailsPage(
+                        context, _filteredLegalOpinions[index]);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                            color: const Color.fromARGB(255, 203, 201, 201),
+                            width: 1.0),
                       ),
-                      child: Card(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Icon(Icons.article,
-                                  color: Colors.blue[
-                                      900]), // Replace with your desired icon
-                              SizedBox(width: 16.0),
-                              Expanded(
-                                child: Text(
-                                  _legalOpinions[index].issuance.title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                    ),
+                    child: Card(
+                      elevation: 0,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Icon(Icons.article, color: Colors.blue[900]),
+                            SizedBox(width: 16.0),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text.rich(
+                                    highlightMatches(
+                                        _filteredLegalOpinions[index]
+                                            .issuance
+                                            .title,
+                                        _searchController.text),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
                                   ),
-                                ),
+                                  SizedBox(height: 4.0),
+                                  Text.rich(
+                                    _filteredLegalOpinions[index]
+                                                .issuance
+                                                .referenceNo !=
+                                            'N/A'
+                                        ? highlightMatches(
+                                            'Ref #: ${_filteredLegalOpinions[index].issuance.referenceNo}',
+                                            _searchController.text)
+                                        : TextSpan(text: 'Ref #: N/A'),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Text(
+                                    _filteredLegalOpinions[index].category !=
+                                            'N/A'
+                                        ? 'Category: ${_filteredLegalOpinions[index].category}'
+                                        : '',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(height: 4.0),
-
-                              Text(
-                                'Ref #${_legalOpinions[index].issuance.referenceNo}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
+                            ),
+                            SizedBox(width: 16.0),
+                            Text(
+                              _filteredLegalOpinions[index].issuance.date !=
+                                      'N/A'
+                                  ? DateFormat('MMMM dd, yyyy').format(
+                                      DateTime.parse(
+                                          _filteredLegalOpinions[index]
+                                              .issuance
+                                              .date))
+                                  : '',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
                               ),
-                              SizedBox(width: 16.0),
-                              Text(
-                                DateFormat('MMMM dd, yyyy').format(
-                                  DateTime.parse(
-                                      _legalOpinions[index].issuance.date),
-                                ),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ],
       ),
@@ -194,63 +216,66 @@ class _LegalOpinionsState extends State<LegalOpinions> {
         builder: (context) => DetailsScreen(
           title: issuance.issuance.title,
           content:
-              'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}',
+              'Ref #: ${issuance.issuance.referenceNo != 'N/A' ? issuance.issuance.referenceNo + '\n' : ''}'
+              '${issuance.issuance.date != 'N/A' ? DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date)) + '\n' : ''}',
           pdfUrl: issuance.issuance.urlLink,
-          type: draft.getTypeForDownload(issuance.issuance.type),
+          type: getTypeForDownload(issuance.issuance.type),
         ),
       ),
     );
   }
-}
 
-class LegalOpinion {
-  final int id;
-  final String category;
-  final Issuance issuance;
-
-  LegalOpinion({
-    required this.id,
-    required this.category,
-    required this.issuance,
-  });
-
-  factory LegalOpinion.fromJson(Map<String, dynamic> json) {
-    return LegalOpinion(
-      id: json['id'],
-      category: json['category'],
-      issuance: Issuance.fromJson(json['issuance']),
-    );
+  void _filterLegalOpinions(String query) {
+    setState(() {
+      // Filter the legal opinions based on the search query
+      _filteredLegalOpinions = _legalOpinions.where((opinion) {
+        final title = opinion.issuance.title.toLowerCase();
+        final referenceNo = opinion.issuance.referenceNo.toLowerCase();
+        return title.contains(query.toLowerCase()) ||
+            referenceNo.contains(query.toLowerCase());
+      }).toList();
+    });
   }
 }
 
-class Issuance {
-  final int id;
-  final String date;
-  final String title;
-  final String referenceNo;
-  final String keyword;
-  final String urlLink;
-  final String type;
-
-  Issuance({
-    required this.id,
-    required this.date,
-    required this.title,
-    required this.referenceNo,
-    required this.keyword,
-    required this.urlLink,
-    required this.type,
-  });
-
-  factory Issuance.fromJson(Map<String, dynamic> json) {
-    return Issuance(
-      id: json['id'],
-      date: json['date'],
-      title: json['title'],
-      referenceNo: json['reference_no'],
-      keyword: json['keyword'],
-      urlLink: json['url_link'],
-      type: json['type'],
-    );
+TextSpan highlightMatches(String text, String query) {
+  if (query.isEmpty) {
+    return TextSpan(text: text);
   }
+
+  List<TextSpan> textSpans = [];
+
+  // Create a regular expression pattern with case-insensitive matching
+  RegExp regex = RegExp(query, caseSensitive: false);
+
+  // Find all matches of the query in the text
+  Iterable<Match> matches = regex.allMatches(text);
+
+  // Start index for slicing the text
+  int startIndex = 0;
+
+  // Add text segments with and without highlighting
+  for (Match match in matches) {
+    // Add text segment before the match
+    textSpans.add(TextSpan(text: text.substring(startIndex, match.start)));
+
+    // Add the matching segment with highlighting
+    textSpans.add(TextSpan(
+      text: text.substring(match.start, match.end),
+      style: TextStyle(
+        color: Colors.blue,
+        fontWeight: FontWeight.bold,
+      ),
+    ));
+
+    // Update the start index for the next segment
+    startIndex = match.end;
+  }
+
+  // Add the remaining text segment
+  textSpans.add(TextSpan(text: text.substring(startIndex)));
+
+  return TextSpan(children: textSpans);
 }
+
+void _navigateToSelectedPage(BuildContext context, int index) {}

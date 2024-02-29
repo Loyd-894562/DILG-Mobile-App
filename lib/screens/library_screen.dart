@@ -4,11 +4,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'shared_data_model.dart';
 
 class LibraryScreen extends StatefulWidget {
   final Function(String, String) onFileOpened;
+  final Function(String) onFileDeleted; // Added onFileDeleted callback
 
-  LibraryScreen({required this.onFileOpened});
+  LibraryScreen({required this.onFileOpened, required this.onFileDeleted});
 
   @override
   _LibraryScreenState createState() => _LibraryScreenState();
@@ -192,35 +195,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     },
                     onDismissed: (direction) {},
                     child: ListTile(
-                      title: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.picture_as_pdf,
-                                color: Colors.blue,
-                              ),
-                              SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  file.split('/').last,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 4),
-                          Container(
-                            height: 0.5, // Adjust thickness here
-                            color: Colors.black,
-                          ),
-                        ],
+                      title: Text(
+                        file.split('/').last,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
+                      leading: Icon(Icons.picture_as_pdf),
                       onTap: () {
                         openPdfViewer(context, file, widget.onFileOpened);
                       },
@@ -289,6 +269,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
       downloadedFiles.remove(filePath);
       filteredFiles.remove(filePath);
 
+      // Notify the parent widget (HomeScreen) that a file is deleted
+      widget.onFileDeleted(filePath);
+
+      // Remove the issuance from the shared data model
+      RecentlyOpenedIssuances.removeIssuance(filePath);
+
       // Show a confirmation dialog
       showDialog(
         context: context,
@@ -353,15 +339,4 @@ Future<void> openPdfViewer(BuildContext context, String filePath,
 
   String fileName = filePath.split('/').last;
   onFileOpened(fileName, filePath);
-}
-
-String getFolderName(String path) {
-  List<String> parts = path.split('/');
-  if (parts.length > 1) {
-    String folder = parts[parts.length - 2];
-    print('Folder name extracted: $folder');
-    return folder;
-  }
-  print('No folder name found in path: $path');
-  return 'Other';
 }

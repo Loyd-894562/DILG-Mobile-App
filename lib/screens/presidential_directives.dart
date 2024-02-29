@@ -1,31 +1,34 @@
 import 'dart:convert';
+import 'package:DILGDOCS/Services/globals.dart';
+import 'package:flutter/gestures.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+import '../models/presidential_directives.dart';
 import '../utils/routes.dart';
 import 'sidebar.dart';
 import 'details_screen.dart';
 import 'package:http/http.dart' as http;
 import "file_utils.dart";
+
 class PresidentialDirectives extends StatefulWidget {
   @override
   State<PresidentialDirectives> createState() => _PresidentialDirectivesState();
 }
 
 class _PresidentialDirectivesState extends State<PresidentialDirectives> {
+  TextEditingController _searchController = TextEditingController();
+  List<PresidentialDirective> _presidentialDirectives = [];
+  List<PresidentialDirective> _filteredPresidentialDirectives = [];
 
-    List<PresidentialDirective> _presidentialDirectives = [];
-    List<PresidentialDirective> get presidentialDirectives => _presidentialDirectives;
-      
-
-@override
+  @override
   void initState() {
     super.initState();
     fetchPresidentialCirculars();
-}
+  }
 
   Future<void> fetchPresidentialCirculars() async {
     final response = await http.get(
-      Uri.parse('https://issuances.dilgbohol.com/api/presidential_directives'),
+      Uri.parse('$baseURL/presidential_directives'),
       headers: {
         'Accept': 'application/json',
       },
@@ -34,24 +37,20 @@ class _PresidentialDirectivesState extends State<PresidentialDirectives> {
       final List<dynamic>? data = json.decode(response.body)['presidentials'];
 
       if (data != null) {
-        print('Presidential Directives Data: $data');
-
         setState(() {
-          _presidentialDirectives = data.map((item) => PresidentialDirective.fromJson(item)).toList();
+          _presidentialDirectives =
+              data.map((item) => PresidentialDirective.fromJson(item)).toList();
+          _filteredPresidentialDirectives = _presidentialDirectives;
         });
-      } else {
-        print('Presidential Directives Data is null');
       }
     } else {
-  // Handle error
-      print('Failed to load latest issuances'); 
+      // Handle error
+      print('Failed to load latest issuances');
       print('Response status code: ${response.statusCode}');
       print('Response body: ${response.body}');
     }
-
   }
 
- 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,201 +81,207 @@ class _PresidentialDirectivesState extends State<PresidentialDirectives> {
   }
 
   Widget _buildBody() {
-    TextEditingController searchController = TextEditingController();
-
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Filter Category Dropdown
-         
           // Search Input
           Container(
-            // margin: EdgeInsets.only(top: 4.0),
-            padding: EdgeInsets.all(12.0),
+            margin: EdgeInsets.only(top: 16.0),
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: TextField(
-              controller: searchController,
+              controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search...',
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: Icon(Icons.search, color: Colors.grey),
+                filled: true,
+                fillColor: Colors.white,
                 border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey[400]!),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
                 ),
+                contentPadding: EdgeInsets.symmetric(vertical: 16.0),
               ),
+              style: TextStyle(fontSize: 16.0),
               onChanged: (value) {
-                // Handle search input changes
+                // Call the function to filter the list based on the search query
+                _filterPresidentialDirectives(value);
               },
             ),
-          ), // Adjust the spacing as needed
+          ),
 
-          // Sample Table Section
-          Container(
-            // padding: EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Presidential Directives',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  // Add margin to the left
-                  textAlign: TextAlign.left,
-                  // Use the EdgeInsets.only to specify margin for specific sides
-                  // In this case, only the left margin is set to 3.0
-                  // margin: EdgeInsets.only(left: 3.0),
-                ),
-
-                SizedBox(height: 16.0),
-                for (int index = 0; index < _presidentialDirectives.length; index++)
-              InkWell(
-               onTap: () {
-                  _navigateToDetailsPage(context, _presidentialDirectives[index]);
-                },
-                child: Container(
+          // Display the filtered presidential directives
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 16.0),
+              for (int index = 0;
+                  index < _filteredPresidentialDirectives.length;
+                  index++)
+                InkWell(
+                  onTap: () {
+                    _navigateToDetailsPage(
+                        context, _filteredPresidentialDirectives[index]);
+                  },
+                  child: Container(
                     decoration: BoxDecoration(
                       border: Border(
-                        bottom:
-                            BorderSide(color: const Color.fromARGB(255, 203, 201, 201), width: 1.0),
+                        bottom: BorderSide(
+                            color: const Color.fromARGB(255, 203, 201, 201),
+                            width: 1.0),
                       ),
                     ),
-                child: Card(
-                  elevation: 0,
-                 
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Icon(Icons.article, color: Colors.blue[900]),
-                        SizedBox(width: 16.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _presidentialDirectives[index].issuance.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
+                    child: Card(
+                      elevation: 0,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Icon(Icons.article, color: Colors.blue[900]),
+                            SizedBox(width: 16.0),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text.rich(
+                                    highlightMatches(
+                                        _filteredPresidentialDirectives[index]
+                                            .issuance
+                                            .title,
+                                        _searchController.text),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4.0),
+                                  Text.rich(
+                                    highlightMatches(
+                                        'Ref #: ${_filteredPresidentialDirectives[index].issuance.referenceNo}',
+                                        _searchController.text),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Text.rich(
+                                    highlightMatches(
+                                        'Responsible Office: ${_filteredPresidentialDirectives[index].responsible_office}',
+                                        _searchController.text),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(height: 4.0),
-                              Text(
-                                'Ref #${_presidentialDirectives[index].issuance.referenceNo}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
+                            ),
+                            SizedBox(width: 16.0),
+                            Text(
+                              _filteredPresidentialDirectives[index]
+                                          .issuance
+                                          .date !=
+                                      'N/A'
+                                  ? DateFormat('MMMM dd, yyyy').format(
+                                      DateTime.parse(
+                                          _filteredPresidentialDirectives[index]
+                                              .issuance
+                                              .date))
+                                  : '',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
                               ),
-                              Text(
-                                'Ref #${_presidentialDirectives[index].responsible_office}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        SizedBox(width: 16.0),
-                        Text(
-                          DateFormat('MMMM dd, yyyy').format(
-                            DateTime.parse(_presidentialDirectives[index].issuance.date),
-                          ),
-                          style: TextStyle(
-                            fontSize: 12,
-                          ),
-                        ),
-                        
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              ),
-
-              ],
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 
+  void _filterPresidentialDirectives(String query) {
+    setState(() {
+      // Filter the presidential directives based on the search query
+      _filteredPresidentialDirectives =
+          _presidentialDirectives.where((directive) {
+        final title = directive.issuance.title.toLowerCase();
+        final referenceNo = directive.issuance.referenceNo.toLowerCase();
+        final responsibleOffice = directive.responsible_office.toLowerCase();
+        return title.contains(query.toLowerCase()) ||
+            referenceNo.contains(query.toLowerCase()) ||
+            responsibleOffice.contains(query.toLowerCase());
+      }).toList();
+    });
+  }
 
- void _navigateToDetailsPage(BuildContext context, PresidentialDirective issuance) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => DetailsScreen(
-        title: issuance.issuance.title,
-        content: 'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))} \n \n ${issuance.responsible_office}',
-        pdfUrl: issuance.issuance.urlLink,
-         type: getTypeForDownload(issuance.issuance.type),
+  void _navigateToDetailsPage(
+      BuildContext context, PresidentialDirective directive) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailsScreen(
+          title: directive.issuance.title,
+          content:
+              'Ref #: ${directive.issuance.referenceNo != 'N/A' ? directive.issuance.referenceNo + '\n' : ''}'
+              '${directive.issuance.date != 'N/A' ? DateFormat('MMMM dd, yyyy').format(DateTime.parse(directive.issuance.date)) + '\n' : ''}'
+              '${directive.responsible_office != 'N/A' ? 'Category: ${directive.responsible_office}\n' : ''}',
+          pdfUrl: directive.issuance.urlLink,
+          type: getTypeForDownload(directive.issuance.type),
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
+  TextSpan highlightMatches(String text, String query) {
+    if (query.isEmpty) {
+      return TextSpan(text: text);
+    }
+
+    List<TextSpan> textSpans = [];
+
+    // Create a regular expression pattern with case-insensitive matching
+    RegExp regex = RegExp(query, caseSensitive: false);
+
+    // Find all matches of the query in the text
+    Iterable<Match> matches = regex.allMatches(text);
+
+    // Start index for slicing the text
+    int startIndex = 0;
+
+    // Add text segments with and without highlighting
+    for (Match match in matches) {
+      // Add text segment before the match
+      textSpans.add(TextSpan(text: text.substring(startIndex, match.start)));
+
+      // Add the matching segment with highlighting
+      textSpans.add(TextSpan(
+        text: text.substring(match.start, match.end),
+        style: TextStyle(
+          color: Colors.blue,
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+
+      // Update the start index for the next segment
+      startIndex = match.end;
+    }
+
+    // Add the remaining text segment
+    textSpans.add(TextSpan(text: text.substring(startIndex)));
+
+    return TextSpan(children: textSpans);
+  }
 
   void _navigateToSelectedPage(BuildContext context, int index) {
     // Handle navigation if needed
   }
 }
-
-
-class PresidentialDirective {
-   final int id;
-   final String responsible_office;
-   final Issuance issuance;
-
-PresidentialDirective({
-    required this.id,
-    required this.responsible_office,
-    required this.issuance,
-   
-  });
-
-  factory PresidentialDirective.fromJson(Map<String, dynamic> json) {
-    return PresidentialDirective(
-      id: json['id'],
-      responsible_office: json['responsible_office'] ?? 'N/A', 
-      issuance: Issuance.fromJson(json['issuance']),
-    );
-  }
-}
-class Issuance {
-  final int id;
-  final String date;
-  final String title;
-  final String referenceNo;
-  final String keyword;
-  final String urlLink; 
-  final String type; 
-
-  Issuance({
-    required this.id,
-    required this.date,
-    required this.title,
-    required this.referenceNo,
-    required this.keyword,
-    required this.urlLink,
-    required this.type
-  });
-
-  factory Issuance.fromJson(Map<String, dynamic> json) {
-    return Issuance(
-      id: json['id'],
-      date: json['date'],
-      title: json['title'],
-      referenceNo: json['reference_no'],
-      keyword: json['keyword'],
-      urlLink: json['url_link'],
-      type: json['type']
-    );
-  }
-}
-

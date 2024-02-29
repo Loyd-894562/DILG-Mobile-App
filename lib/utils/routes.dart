@@ -11,7 +11,6 @@ import '../screens/search_screen.dart';
 import '../screens/library_screen.dart';
 import '../screens/intro_section.dart';
 import '../screens/login_screen.dart';
-import 'package:DILGDOCS/screens/library_screen.dart';
 
 class Routes {
   static const String home = '/';
@@ -31,13 +30,17 @@ class Routes {
     return {
       home: (context) => const HomeScreen(),
       search: (context) => SearchScreen(),
-      library: (context) => LibraryScreen(
+      'library': (context) => LibraryScreen(
             onFileOpened: (fileName, filePath) {
               // Implement your logic when file is opened
               print('File opened: $fileName');
             },
+            onFileDeleted: (filePath) {
+              // Implement your logic when file is deleted
+              print('File deleted: $filePath');
+            },
           ),
-      introsection: (context) => IntroSection(),
+      // introsection: (context) => IntroSection(),
       latestIssuances: (context) => LatestIssuances(),
       jointCirculars: (context) => JointCirculars(),
       memoCirculars: (context) => MemoCirculars(),
@@ -46,12 +49,8 @@ class Routes {
       republicActs: (context) => RepublicActs(),
       legalOpinions: (context) => LegalOpinions(),
       login: (context) => LoginScreen(
-            title: 'login',
+            title: '',
           ),
     };
-  }
-
-  static void navigateToLibrary(BuildContext context) {
-    Navigator.pushNamed(context, library);
   }
 }

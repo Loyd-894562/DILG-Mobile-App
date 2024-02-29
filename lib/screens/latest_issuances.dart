@@ -1,10 +1,16 @@
 import 'dart:convert';
+import 'package:DILGDOCS/models/latest_issuances.dart';
+import 'package:DILGDOCS/screens/file_utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+import '../Services/globals.dart';
+import '../models/latest_issuances.dart';
 import '../utils/routes.dart';
 import 'sidebar.dart';
 import 'details_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:anim_search_bar/anim_search_bar.dart';
 
 class LatestIssuances extends StatefulWidget {
   @override
@@ -13,19 +19,9 @@ class LatestIssuances extends StatefulWidget {
 
 class _LatestIssuancesState extends State<LatestIssuances> {
   List<LatestIssuance> _latestIssuances = [];
-  List<LatestIssuance> get latestIssuances => _latestIssuances;
-  List<String> categories = [
-    'All Outcome Area',
-    'ACCOUNTABLE, TRANSPARENT, PARTICIPATIVE',
-    'AND EFFECTIVE LOCAL GOVERNANCE',
-    'PEACEFUL, ORDERLY AND SAFE LGUS STRATEGIC PRIORITIES',
-    'SOCIALLY PROTECTIVE LGUS',
-    'ENVIRONMENT-PROTECTIVE, CLIMATE CHANGE ADAPTIVE AND DISASTER RESILIENT LGUS',
-    'BUSINESS-FRIENDLY AND COMPETITIVE LGUS',
-    'STRENGTHENING OF INTERNAL GOVERNANCE'
-  ];
-
-  String selectedCategory = 'All Outcome Area'; // Default selection
+  List<LatestIssuance> _filteredLatestIssuances =
+      []; // Initialize filtered list
+  TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -35,21 +31,30 @@ class _LatestIssuancesState extends State<LatestIssuances> {
 
   Future<void> fetchLatestIssuances() async {
     final response = await http.get(
-      Uri.parse('https://issuances.dilgbohol.com/api/latest_issuances'),
+      Uri.parse('$baseURL/latest_issuances'),
       headers: {
         'Accept': 'application/json',
       },
     );
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body)['latests'];
 
-      setState(() {
-        _latestIssuances =
-            data.map((item) => LatestIssuance.fromJson(item)).toList();
-      });
+    if (response.statusCode == 200) {
+      final Map<String, dynamic>? responseData = json.decode(response.body);
+
+      if (responseData != null && responseData.containsKey('latests')) {
+        final List<dynamic> data = responseData['latests'];
+
+        setState(() {
+          _latestIssuances =
+              data.map((item) => LatestIssuance.fromJson(item)).toList();
+          _filteredLatestIssuances = _latestIssuances;
+        });
+      } else {
+        print('Failed to load latest opinions: Data format error');
+        print(
+            'Response body: ${response.body}'); // Print response body for debugging
+      }
     } else {
-      // Handle error
-      print('Failed to load latest issuances');
+      print('Failed to load latest opinions');
       print('Response status code: ${response.statusCode}');
       print('Response body: ${response.body}');
     }
@@ -63,281 +68,272 @@ class _LatestIssuancesState extends State<LatestIssuances> {
           'Latest Issuances',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: Colors.white,
           ),
         ),
         leading: Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: Colors.white),
+            icon: Icon(Icons.menu, color: Colors.blue[900]),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        backgroundColor: Colors.blue[900],
       ),
-      body: SingleChildScrollView(
-        child: _buildBody(),
-      ),
+      body: _buildBody(),
       drawer: Sidebar(
-        currentIndex: 1,
+        currentIndex: 7,
         onItemSelected: (index) {
-          _navigateToSelectedPage(context, index);
+          Navigator.pop(context);
         },
       ),
     );
   }
 
   Widget _buildBody() {
-    TextEditingController searchController = TextEditingController();
-
-    return Column(
-      children: [
-        // Filter Category Dropdown
-        Container(
-          padding: EdgeInsets.all(16.0),
-          child: DropdownButton<String>(
-            value: selectedCategory,
-            onChanged: (String? newValue) {
-              if (newValue != null) {
-                setState(() {
-                  selectedCategory = newValue;
-                });
-              }
-            },
-            items: categories.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: selectedCategory == value
-                    ? Text(
-                        _truncateText(
-                            value, 30), // Adjust the maxLength as needed
-                        style: TextStyle(
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )
-                    : Text(value),
-              );
-            }).toList(),
-          ),
-        ),
-
-        // Search Input
-        Container(
-          padding: EdgeInsets.all(12.0),
-          child: TextField(
-            controller: searchController,
-            decoration: InputDecoration(
-              hintText: 'Search...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.grey[400]!),
-                borderRadius: BorderRadius.circular(8),
-              ),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Search Input
+          Container(
+            margin: EdgeInsets.only(top: 16.0),
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
             ),
-            onChanged: (value) {
-              // Handle search input changes
-            },
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search...',
+                prefixIcon: Icon(Icons.search, color: Colors.grey),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 16.0),
+              ),
+              style: TextStyle(fontSize: 16.0),
+              onChanged: (value) {
+                // Call the function to filter the list based on the search query
+                _filterLatestIssuances(value); // Corrected method call
+              },
+            ),
           ),
-        ), // Adjust the spacing as needed
 
-        // Sample Table Section
-        Container(
-          child: Column(
+          // Display the filtered presidential directives
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Latest',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
               SizedBox(height: 16.0),
-              SizedBox(
-                // Set a maximum height for the ListView
-                height: MediaQuery.of(context).size.height * 0.6,
-                child: ListView.builder(
-                  itemCount: _latestIssuances.length,
-                  itemBuilder: (context, index) {
-                    return InkWell(
-                      onTap: () {
-                        _navigateToDetailsPage(
-                          context,
-                          _latestIssuances[index],
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: const Color.fromARGB(255, 203, 201, 201),
-                              width: 1.0,
+              for (int index = 0;
+                  index < _filteredLatestIssuances.length;
+                  index++)
+                InkWell(
+                  onTap: () {
+                    _navigateToDetailsPage(
+                        context, _filteredLatestIssuances[index]);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                            color: const Color.fromARGB(255, 203, 201, 201),
+                            width: 1.0),
+                      ),
+                    ),
+                    child: Card(
+                      elevation: 0,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Icon(Icons.article, color: Colors.blue[900]),
+                            SizedBox(width: 16.0),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text.rich(
+                                    highlightMatches(
+                                        _filteredLatestIssuances[index]
+                                            .issuance
+                                            .title,
+                                        _searchController.text),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4.0),
+                                  Text.rich(
+                                    _filteredLatestIssuances[index]
+                                                .issuance
+                                                .referenceNo !=
+                                            'N/A'
+                                        ? highlightMatches(
+                                            'Ref #: ${_filteredLatestIssuances[index].issuance.referenceNo}',
+                                            _searchController.text)
+                                        : TextSpan(text: ''),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Text.rich(
+                                    _filteredLatestIssuances[index].outcome !=
+                                            'N/A'
+                                        ? highlightMatches(
+                                            'Outcome Area: ${_filteredLatestIssuances[index].outcome}',
+                                            _searchController.text)
+                                        : TextSpan(text: ''),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Text(
+                                    _filteredLatestIssuances[index].category !=
+                                            'N/A'
+                                        ? 'Category: ${_filteredLatestIssuances[index].category}'
+                                        : '',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ),
-                        child: Card(
-                          elevation: 0,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.article,
-                                  color: Colors.blue[900],
-                                ),
-                                SizedBox(width: 16.0),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _latestIssuances[index].issuance.title,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4.0),
-                                      Text(
-                                        'Ref #${_latestIssuances[index].issuance.referenceNo}',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(width: 16.0),
-                                Text(
-                                  DateFormat('MMMM dd, yyyy').format(
-                                    DateTime.parse(
-                                        _latestIssuances[index].issuance.date),
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
+                            SizedBox(width: 16.0),
+                            Text(
+                              _filteredLatestIssuances[index].issuance.date !=
+                                      'N/A'
+                                  ? DateFormat('MMMM dd, yyyy').format(
+                                      DateTime.parse(
+                                          _filteredLatestIssuances[index]
+                                              .issuance
+                                              .date))
+                                  : '',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   void _navigateToDetailsPage(BuildContext context, LatestIssuance issuance) {
     print('PDF URL: ${issuance.issuance.urlLink}');
     Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DetailsScreen(
-          title: issuance.issuance.title,
-          content:
-              'Ref #${issuance.issuance.referenceNo}\n${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}',
-          pdfUrl: issuance.issuance.urlLink,
-          type: getTypeForDownload(issuance.issuance.type),
+        context,
+        MaterialPageRoute(
+          builder: (context) => DetailsScreen(
+            title: issuance.issuance.title,
+            content:
+                'Ref #: ${issuance.issuance.referenceNo != 'N/A' ? issuance.issuance.referenceNo + '\n' : ''}'
+                '${issuance.issuance.date != 'N/A' ? DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date)) + '\n' : ''}'
+                '${issuance.category != 'N/A' ? 'Category: ${issuance.category}\n' : ''}',
+            pdfUrl: issuance.issuance.urlLink,
+            type: getTypeForDownload(issuance.issuance.type),
+          ),
+        ));
+  }
+
+  Widget buildContent(LatestIssuance issuance) {
+    List<InlineSpan> spans = [];
+
+    if (issuance.issuance.referenceNo != 'N/A') {
+      spans.add(TextSpan(text: 'Ref #${issuance.issuance.referenceNo}\n'));
+    }
+
+    if (issuance.issuance.date != 'N/A') {
+      spans.add(TextSpan(
+          text:
+              '${DateFormat('MMMM dd, yyyy').format(DateTime.parse(issuance.issuance.date))}\n'));
+    }
+
+    if (issuance.category != 'N/A') {
+      spans.add(TextSpan(text: 'Category: ${issuance.category}\n'));
+    }
+
+    return RichText(
+      text: TextSpan(children: spans),
+      textAlign: TextAlign.start,
+    );
+  }
+
+  void _filterLatestIssuances(String query) {
+    setState(() {
+      // Filter the latest issuances based on the search query
+      _filteredLatestIssuances = _latestIssuances.where((issuance) {
+        final title = issuance.issuance.title.toLowerCase();
+        final referenceNo = issuance.issuance.referenceNo.toLowerCase();
+        final outcome = issuance.outcome.toLowerCase();
+        return title.contains(query.toLowerCase()) ||
+            referenceNo.contains(query.toLowerCase());
+      }).toList();
+    });
+  }
+
+  TextSpan highlightMatches(String text, String query) {
+    if (query.isEmpty) {
+      return TextSpan(text: text);
+    }
+
+    List<TextSpan> textSpans = [];
+
+    // Create a regular expression pattern with case-insensitive matching
+    RegExp regex = RegExp(query, caseSensitive: false);
+
+    // Find all matches of the query in the text
+    Iterable<Match> matches = regex.allMatches(text);
+
+    // Start index for slicing the text
+    int startIndex = 0;
+
+    // Add text segments with and without highlighting
+    for (Match match in matches) {
+      // Add text segment before the match
+      textSpans.add(TextSpan(text: text.substring(startIndex, match.start)));
+
+      // Add the matching segment with highlighting
+      textSpans.add(TextSpan(
+        text: text.substring(match.start, match.end),
+        style: TextStyle(
+          color: Colors.blue,
+          fontWeight: FontWeight.bold,
         ),
-      ),
-    );
+      ));
+
+      // Update the start index for the next segment
+      startIndex = match.end;
+    }
+
+    // Add the remaining text segment
+    textSpans.add(TextSpan(text: text.substring(startIndex)));
+
+    return TextSpan(children: textSpans);
   }
 
-  void _navigateToSelectedPage(BuildContext context, int index) {
-    // Handle navigation if needed
+  String _truncateText(String text, int maxLength) {
+    if (text.length <= maxLength) {
+      return text;
+    } else {
+      return text.substring(0, maxLength) + '...';
+    }
   }
-}
 
-String _truncateText(String text, int maxLength) {
-  if (text.length <= maxLength) {
-    return text;
-  } else {
-    return text.substring(0, maxLength) + '...';
-  }
-}
-
-//for Latest getters and setters
-class LatestIssuance {
-  final int id;
-  final String category;
-  final String outcome;
-  final Issuance issuance;
-
-  LatestIssuance({
-    required this.id,
-    required this.category,
-    required this.outcome,
-    required this.issuance,
-  });
-
-  factory LatestIssuance.fromJson(Map<String, dynamic> json) {
-    return LatestIssuance(
-      id: json['id'],
-      category: json['category'],
-      outcome: json['outcome'],
-      issuance: Issuance.fromJson(json['issuance']),
-    );
-  }
-}
-
-//for Issuance
-class Issuance {
-  final int id;
-  final String date;
-  final String title;
-  final String referenceNo;
-  final String keyword;
-  final String urlLink;
-  final String type;
-
-  Issuance(
-      {required this.id,
-      required this.date,
-      required this.title,
-      required this.referenceNo,
-      required this.keyword,
-      required this.urlLink,
-      required this.type});
-
-  factory Issuance.fromJson(Map<String, dynamic> json) {
-    return Issuance(
-        id: json['id'],
-        date: json['date'],
-        title: json['title'],
-        referenceNo: json['reference_no'],
-        keyword: json['keyword'],
-        urlLink: json['url_link'],
-        type: json['type']);
-  }
-}
-
-String getTypeForDownload(String issuanceType) {
-  switch (issuanceType) {
-    case 'Latest Issuance':
-      return 'Latest Issuance';
-    case 'Joint Circulars':
-      return 'Joint Circulars';
-    case 'Memo Circulars':
-      return 'Memo Circulars';
-    case 'Presidential Directives':
-      return 'Presidential Directives';
-    case 'Draft Issuances':
-      return 'Draft Issuances';
-    case 'Republic Acts':
-      return 'Republic Acts';
-    case 'Legal Opinions':
-      return 'Legal Opinions';
-
-    default:
-      return 'Other';
-  }
+  void _navigateToSelectedPage(BuildContext context, int index) {}
 }
