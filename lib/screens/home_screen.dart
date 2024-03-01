@@ -279,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'Recently Opened Issuances',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -288,13 +288,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 14.0),
         if (_recentlyOpenedIssuances.isEmpty)
           Center(
             child: Text(
               'No recently opened Issuance/s',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -315,8 +315,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          issuance.title.length > 20
-                              ? '${issuance.title.substring(0, 20)}...'
+                          issuance.title.length > 15
+                              ? '${issuance.title.substring(0, 15)}...'
                               : issuance.title,
                         ),
                         ElevatedButton(
@@ -374,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 18.0,
+                fontSize: 16.0,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
