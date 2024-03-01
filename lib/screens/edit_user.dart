@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'sidebar.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:connectivity/connectivity.dart';
+import 'package:DILGDOCS/Services/auth_services.dart';
 
 class EditUser extends StatefulWidget {
   @override
@@ -7,45 +11,61 @@ class EditUser extends StatefulWidget {
 }
 
 class _EditUserState extends State<EditUser> {
-  // Controllers for text fields
   TextEditingController _nameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  File? _userImage;
+  bool isAuthenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserInfo();
+  }
+
+  Future<void> _getUserInfo() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool loggedIn = prefs.getBool('isAuthenticated') ?? false;
+    String? name = prefs.getString('userName');
+    String? email = prefs.getString('userEmail');
+    setState(() {
+      isAuthenticated = loggedIn;
+      _nameController.text = name ?? '';
+      _emailController.text = email ?? '';
+    });
+  }
 
   @override
   void dispose() {
-    // Dispose controllers to avoid memory leaks
     _nameController.dispose();
     _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedImage = await ImagePicker().pickImage(source: source);
+
+    if (pickedImage != null) {
+      setState(() {
+        _userImage = File(pickedImage.path);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text(
-      //     'View Profile',
-      //     style: TextStyle(
-      //       fontWeight: FontWeight.bold,
-      //       color: Colors.white,
-      //     ),
-      //   ),
-      //   leading: Builder(
-      //     builder: (context) => IconButton(
-      //       icon: Icon(Icons.menu, color: Colors.white),
-      //       onPressed: () => Scaffold.of(context).openDrawer(),
-      //     ),
-      //   ),
-      //   backgroundColor: Colors.blue[900],
-      // ),
-      drawer: Sidebar(
-        currentIndex: 1,
-        onItemSelected: (index) {
-          // Handle item selection if needed
-          _navigateToSelectedPage(context, index);
-        },
+      appBar: AppBar(
+        title: Text(
+          'View Profile',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        iconTheme: IconThemeData(
+          color: Colors.white,
+        ),
+        backgroundColor: Colors.blue[900],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -54,57 +74,48 @@ class _EditUserState extends State<EditUser> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               SizedBox(height: 16),
-
-              // Default container for an image
-              Container(
-                width: 130,
-                height: 130,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.blue[900],
-                ),
-                child: Icon(
-                  Icons.person,
-                  color: Colors.white,
-                  size: 110,
+              GestureDetector(
+                onTap: () {
+                  _pickImage(ImageSource.gallery);
+                },
+                child: Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.blue[900],
+                    image: _userImage != null
+                        ? DecorationImage(
+                            image: FileImage(_userImage!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: _userImage == null
+                      ? Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 110,
+                        )
+                      : null,
                 ),
               ),
-
               SizedBox(height: 16),
-
-              // Name input field
               _buildTextField('Name', Icons.person, _nameController),
               SizedBox(height: 16),
-
-              // Email input field
               _buildTextField('Email', Icons.email, _emailController),
-              SizedBox(height: 16),
-
-              // Password input field
-              _buildTextField('Password', Icons.lock, _passwordController,
-                  isPassword: true),
               SizedBox(height: 32),
-
-              // Submit button
               ElevatedButton(
                 onPressed: () {
-                  // Handle form submission
-
-                  // Clear input fields
-                  _nameController.clear();
-                  _emailController.clear();
-                  _passwordController.clear();
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Profile Updated'),
-                      duration:
-                          Duration(seconds: 3), // You can adjust the duration
-                    ),
-                  );
+                  String newName = _nameController.text;
+                  String newEmail = _emailController.text;
+                  _updateNameAndEmail(newName, newEmail);
                 },
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.blue[900],
+                  backgroundColor: Colors.blue[900],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                  ),
                 ),
                 child: Text(
                   'Save Changes',
@@ -119,22 +130,94 @@ class _EditUserState extends State<EditUser> {
   }
 
   Widget _buildTextField(
-      String label, IconData icon, TextEditingController controller,
-      {bool isPassword = false}) {
+      String label, IconData icon, TextEditingController controller) {
     return TextFormField(
       controller: controller,
-      obscureText: isPassword,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(50),
         ),
       ),
     );
   }
 
-  void _navigateToSelectedPage(BuildContext context, int index) {
-    // Handle navigation if needed
+  Future<void> _updateNameAndEmail(String newName, String newEmail) async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('No Internet Connection'),
+            content: Text('Please connect to the internet to update profile.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushReplacementNamed(context, '/settings');
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    try {
+      String? token = await AuthServices.getToken();
+      if (token != null) {
+        await AuthServices.updateUserNameAndEmail(token, newName, newEmail);
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Container(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.green[300],
+                      size: 40,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Profile Updated',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pushReplacementNamed(context, '/settings');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[300],
+                      ),
+                      child: Text('OK'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      } else {
+        print('Authentication token is null');
+      }
+    } catch (error) {
+      print('Error updating profile: $error');
+    }
   }
 }

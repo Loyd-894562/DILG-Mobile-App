@@ -26,6 +26,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
   String _selectedSortOption = 'Date';
   List<String> _sortOptions = ['Date', 'Name'];
 
+  Map<String, DateTime> downloadedFilesWithTime = {};
+
   @override
   void initState() {
     super.initState();
@@ -68,10 +70,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
         await loadDownloadedFiles(entity);
       } else if (entity is File && entity.path.toLowerCase().endsWith('.pdf')) {
         downloadedFiles.add(entity.path);
+        // Store the last modified timestamp for sorting
+        downloadedFilesWithTime[entity.path] = entity.lastModifiedSync();
       }
     }
 
-    downloadedFiles.sort();
+    // Sort files by last modified timestamp in descending order
+    downloadedFiles.sort((a, b) =>
+        downloadedFilesWithTime[b]!.compareTo(downloadedFilesWithTime[a]!));
+
+    // Update filteredFiles list to reflect the changes
+    _filterFiles(_searchController.text);
   }
 
   @override

@@ -53,4 +53,8 @@ class Routes {
           ),
     };
   }
+
+  static void navigateToLibrary(BuildContext context) {
+    Navigator.pushNamed(context, library);
+  }
 }
