@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:DILGDOCS/screens/bottom_navigation.dart';
-import 'package:DILGDOCS/screens/sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
@@ -48,6 +46,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
     setState(() {
       filteredFiles.addAll(downloadedFiles);
     });
+
+    // Sort downloadedFiles based on modification time
+    downloadedFiles.sort((a, b) {
+      DateTime aModified = _getFileModificationTime(a);
+      DateTime bModified = _getFileModificationTime(b);
+      return bModified.compareTo(aModified); // Sort in descending order
+    });
+  }
+
+  DateTime _getFileModificationTime(String filePath) {
+    FileStat stat = File(filePath).statSync();
+    return stat.modified;
   }
 
   Future<void> loadDownloadedFiles(Directory directory) async {
@@ -68,32 +78,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Library',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: Colors.white),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        backgroundColor: Colors.blue[900],
-      ),
-      drawer: Sidebar(
-        currentIndex: 0,
-        onItemSelected: (index) {
-          _navigateToSelectedPage(context, index);
-        },
-      ),
-      bottomNavigationBar: BottomNavigation(
-        currentIndex: 2,
-        onTabTapped: (index) {
-          // Handle bottom navigation item taps if needed
-        },
+        automaticallyImplyLeading: false, // Remove back arrow
+        backgroundColor: Colors.white, // Change background color
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -269,7 +255,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     setState(() {
       if (option == 'Date') {
         downloadedFiles.sort((a, b) =>
-            File(a).lastModifiedSync().compareTo(File(b).lastModifiedSync()));
+            _getFileModificationTime(b).compareTo(_getFileModificationTime(a)));
       } else if (option == 'Name') {
         downloadedFiles.sort((a, b) => a.compareTo(b));
       }
@@ -320,6 +306,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
       downloadedFiles.remove(filePath);
       filteredFiles.remove(filePath);
 
+      // Call the callback function provided by HomeScreen
+      widget.onFileDeleted?.call(filePath.split('/').last);
+
       // Show a confirmation dialog
       showDialog(
         context: context,
@@ -363,10 +352,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
         },
       );
     }
-  }
-
-  void _navigateToSelectedPage(BuildContext context, int index) {
-    // Handle navigation to selected page
   }
 
   Future<void> openPdfViewer(BuildContext context, String filePath,

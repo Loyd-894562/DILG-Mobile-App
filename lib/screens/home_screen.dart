@@ -215,18 +215,19 @@ class _HomeScreenState extends State<HomeScreen> {
           onFileOpened: (title, subtitle) {
             // Add the opened file to recently opened issuances
             setState(() {
-              _recentlyOpenedIssuances.insert(
-                0,
-                Issuance(title: title),
-              );
+              _recentlyOpenedIssuances.insert(0, Issuance(title: title));
             });
           },
-          onFileDeleted: null, // Pass null for onFileDeleted
+          onFileDeleted: (title) {
+            // Remove the deleted issuance from the list of recently opened issuances
+            setState(() {
+              _recentlyOpenedIssuances
+                  .removeWhere((issuance) => issuance.title == title);
+            });
+          },
         );
-      case 3:
-        return EditUser();
       default:
-        return Container();
+        return SizedBox(); // Return an empty widget for unsupported index
     }
   }
 

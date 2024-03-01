@@ -145,7 +145,9 @@ class DetailsScreen extends StatelessWidget {
     try {
       final appDir = await getExternalStorageDirectory();
       final directoryPath = '${appDir!.path}/PDFs';
-      final filePath = '$directoryPath/$title.pdf';
+      final sanitizedTitle = title.replaceAll(
+          '/', '-'); // Replace "/" with "-" in order to download
+      final filePath = '$directoryPath/$sanitizedTitle.pdf';
 
       final file = File(filePath);
       if (await file.exists()) {
