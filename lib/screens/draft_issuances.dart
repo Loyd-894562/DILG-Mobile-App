@@ -25,24 +25,28 @@ class _DraftIssuancesState extends State<DraftIssuances> {
   }
 
   Future<void> fetchDraftIssuances() async {
-    final response = await http.get(
-      Uri.parse('$baseURL/draft_issuances'),
-      headers: {
-        'Accept': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body)['drafts'];
-      setState(() {
-        _draftIssuances =
-            data.map((item) => DraftIssuance.fromJson(item)).toList();
-        _filteredDraftIssuances = _draftIssuances;
-      });
-    } else {
-      // Handle error
-      print('Failed to load Draft issuances');
-      print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
+    try {
+      final response = await http.get(
+        Uri.parse('$baseURL/draft_issuances'),
+        headers: {
+          'Accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body)['drafts'];
+        setState(() {
+          _draftIssuances =
+              data.map((item) => DraftIssuance.fromJson(item)).toList();
+          _filteredDraftIssuances = _draftIssuances;
+        });
+      } else {
+        // Handle error
+        print('Failed to load Draft issuances');
+        print('Response status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
     }
   }
 
@@ -75,130 +79,150 @@ class _DraftIssuancesState extends State<DraftIssuances> {
     );
   }
 
-  Widget _buildBody() {
-    return SingleChildScrollView(
+  Widget _buildLoadingWidget() {
+    return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Search Input
-          Container(
-            margin: EdgeInsets.only(top: 16.0),
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                prefixIcon: Icon(Icons.search, color: Colors.grey),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: EdgeInsets.symmetric(vertical: 16.0),
-              ),
-              style: TextStyle(fontSize: 16.0),
-              onChanged: (value) {
-                // Call the function to filter the list based on the search query
-                _filterDraftIssuances(value);
-              },
-            ),
-          ),
-
-          // Display the filtered draft issuances
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 16.0),
-              for (int index = 0;
-                  index < _filteredDraftIssuances.length;
-                  index++)
-                InkWell(
-                  onTap: () {
-                    _navigateToDetailsPage(
-                        context, _filteredDraftIssuances[index]);
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                            color: const Color.fromARGB(255, 203, 201, 201),
-                            width: 1.0),
-                      ),
-                    ),
-                    child: Card(
-                      elevation: 0,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            Icon(Icons.article, color: Colors.blue[900]),
-                            SizedBox(width: 16.0),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text.rich(
-                                    highlightMatches(
-                                        _filteredDraftIssuances[index]
-                                            .issuance
-                                            .title,
-                                        _searchController.text),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4.0),
-                                  Text.rich(
-                                    highlightMatches(
-                                        'Ref #: ${_filteredDraftIssuances[index].issuance.referenceNo}',
-                                        _searchController.text),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    highlightMatches(
-                                        'Responsible Office: ${_filteredDraftIssuances[index].responsible_office}',
-                                        _searchController.text),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(width: 16.0),
-                            Text(
-                              _filteredDraftIssuances[index].issuance.date !=
-                                      'N/A'
-                                  ? DateFormat('MMMM dd, yyyy').format(
-                                      DateTime.parse(
-                                          _filteredDraftIssuances[index]
-                                              .issuance
-                                              .date))
-                                  : '',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+          CircularProgressIndicator(), // Circular progress indicator
+          SizedBox(height: 16),
+          Text(
+            'Loading Files',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildBody() {
+    if (_draftIssuances.isEmpty) {
+      return _buildLoadingWidget();
+    } else {
+      return SingleChildScrollView(
+        child: Column(
+          children: [
+            // Search Input
+            Container(
+              margin: EdgeInsets.only(top: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search...',
+                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: EdgeInsets.symmetric(vertical: 16.0),
+                ),
+                style: TextStyle(fontSize: 16.0),
+                onChanged: (value) {
+                  // Call the function to filter the list based on the search query
+                  _filterDraftIssuances(value);
+                },
+              ),
+            ),
+
+            // Display the filtered draft issuances
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 16.0),
+                for (int index = 0;
+                    index < _filteredDraftIssuances.length;
+                    index++)
+                  InkWell(
+                    onTap: () {
+                      _navigateToDetailsPage(
+                          context, _filteredDraftIssuances[index]);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                              color: const Color.fromARGB(255, 203, 201, 201),
+                              width: 1.0),
+                        ),
+                      ),
+                      child: Card(
+                        elevation: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              Icon(Icons.article, color: Colors.blue[900]),
+                              SizedBox(width: 16.0),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text.rich(
+                                      highlightMatches(
+                                          _filteredDraftIssuances[index]
+                                              .issuance
+                                              .title,
+                                          _searchController.text),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4.0),
+                                    Text.rich(
+                                      highlightMatches(
+                                          'Ref #: ${_filteredDraftIssuances[index].issuance.referenceNo}',
+                                          _searchController.text),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      highlightMatches(
+                                          'Responsible Office: ${_filteredDraftIssuances[index].responsible_office}',
+                                          _searchController.text),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(width: 16.0),
+                              Text(
+                                _filteredDraftIssuances[index].issuance.date !=
+                                        'N/A'
+                                    ? DateFormat('MMMM dd, yyyy').format(
+                                        DateTime.parse(
+                                            _filteredDraftIssuances[index]
+                                                .issuance
+                                                .date))
+                                    : '',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   void _filterDraftIssuances(String query) {

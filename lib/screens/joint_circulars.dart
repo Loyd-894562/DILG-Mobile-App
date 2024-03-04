@@ -19,6 +19,7 @@ class _JointCircularsState extends State<JointCirculars> {
   TextEditingController _searchController = TextEditingController();
   List<JointCircular> _jointCirculars = [];
   List<JointCircular> _filteredJointCirculars = [];
+  bool _isLoading = true; // Initialize isLoading to true
 
   @override
   void initState() {
@@ -40,12 +41,16 @@ class _JointCircularsState extends State<JointCirculars> {
         _jointCirculars =
             data.map((item) => JointCircular.fromJson(item)).toList();
         _filteredJointCirculars = _jointCirculars;
+        _isLoading = false; // Set isLoading to false when data is loaded
       });
     } else {
       // Handle error
       print('Failed to load latest issuances');
       print('Response status code: ${response.statusCode}');
       print('Response body: ${response.body}');
+      setState(() {
+        _isLoading = false; // Ensure isLoading is set to false on error
+      });
     }
   }
 
@@ -68,12 +73,30 @@ class _JointCircularsState extends State<JointCirculars> {
         ),
         backgroundColor: Colors.blue[900],
       ),
-      body: _buildBody(),
+      body: _isLoading
+          ? _buildLoadingWidget()
+          : _buildBody(), // Use _isLoading to conditionally show loading widget
       drawer: Sidebar(
         currentIndex: 1,
         onItemSelected: (index) {
           _navigateToSelectedPage(context, index);
         },
+      ),
+    );
+  }
+
+  Widget _buildLoadingWidget() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(), // Circular progress indicator
+          SizedBox(height: 16),
+          Text(
+            'Loading Files',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }

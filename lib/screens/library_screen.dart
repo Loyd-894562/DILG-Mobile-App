@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:DILGDOCS/screens/bottom_navigation.dart';
+import 'package:DILGDOCS/screens/sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
@@ -23,9 +25,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
   List<String> downloadedFiles = [];
   List<String> filteredFiles = [];
   bool isSearching = false;
-  String _selectedSortOption = 'Date';
-  List<String> _sortOptions = ['Date', 'Name'];
-
   Map<String, DateTime> downloadedFilesWithTime = {};
 
   @override
@@ -48,18 +47,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
     setState(() {
       filteredFiles.addAll(downloadedFiles);
     });
-
-    // Sort downloadedFiles based on modification time
-    downloadedFiles.sort((a, b) {
-      DateTime aModified = _getFileModificationTime(a);
-      DateTime bModified = _getFileModificationTime(b);
-      return bModified.compareTo(aModified); // Sort in descending order
-    });
-  }
-
-  DateTime _getFileModificationTime(String filePath) {
-    FileStat stat = File(filePath).statSync();
-    return stat.modified;
   }
 
   Future<void> loadDownloadedFiles(Directory directory) async {
@@ -87,8 +74,32 @@ class _LibraryScreenState extends State<LibraryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Remove back arrow
-        backgroundColor: Colors.white, // Change background color
+        title: Text(
+          'Library',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.white),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        backgroundColor: Colors.blue[900],
+      ),
+      drawer: Sidebar(
+        currentIndex: 0,
+        onItemSelected: (index) {
+          _navigateToSelectedPage(context, index);
+        },
+      ),
+      bottomNavigationBar: BottomNavigation(
+        currentIndex: 2,
+        onTabTapped: (index) {
+          // Handle bottom navigation item taps if needed
+        },
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -161,8 +172,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
             children: [
               _buildSearchBar(),
               SizedBox(
-                width: 10,
-              ), // Add spacing between search bar and other widgets
+                  width:
+                      10), // Add spacing between search bar and other widgets
               // Add other widgets here
             ],
           ),
@@ -196,6 +207,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 itemCount: filteredFiles.length,
                 itemBuilder: (BuildContext context, int index) {
                   final String file = filteredFiles[index];
+                  final fileName = file.split('/').last; // Extract file name
                   return Dismissible(
                     key: Key(file),
                     direction: DismissDirection.endToStart,
@@ -224,14 +236,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                               ),
                               SizedBox(width: 10),
                               Expanded(
-                                child: Text(
-                                  file.split('/').last,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                  ),
-                                ),
+                                child: _buildHighlightedTitle(
+                                    fileName), // Use fileName instead of file
                               ),
                             ],
                           ),
@@ -260,15 +266,79 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
+  Widget _buildHighlightedTitle(String title) {
+    final RegExp regex = RegExp(_searchController.text, caseSensitive: false);
+    final Iterable<Match> matches = regex.allMatches(title);
+
+    // If no matches found, return the title as regular text
+    if (matches.isEmpty) {
+      return Text(
+        title,
+        style: TextStyle(
+          fontSize: 16,
+          color: Colors.black, // Set the default color to black
+        ),
+      );
+    }
+
+    // Create a list of TextSpans to highlight the matches
+    final List<TextSpan> children = [];
+    int start = 0;
+    for (Match match in matches) {
+      if (match.start != start) {
+        children.add(
+          TextSpan(
+            text: title.substring(start, match.start),
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.black, // Set the default color to black
+            ),
+          ),
+        );
+      }
+      children.add(
+        TextSpan(
+          text: title.substring(match.start, match.end),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold, // Highlight style
+            color: Colors.blue, // Highlight color
+          ),
+        ),
+      );
+      start = match.end;
+    }
+
+    // Add the remaining part of the title
+    if (start != title.length) {
+      children.add(
+        TextSpan(
+          text: title.substring(start),
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.black, // Set the default color to black
+          ),
+        ),
+      );
+    }
+
+    return RichText(
+      text: TextSpan(
+        children: children,
+      ),
+    );
+  }
+
   void _sortFiles(String option) {
     setState(() {
       if (option == 'Date') {
         downloadedFiles.sort((a, b) =>
-            _getFileModificationTime(b).compareTo(_getFileModificationTime(a)));
+            File(a).lastModifiedSync().compareTo(File(b).lastModifiedSync()));
       } else if (option == 'Name') {
         downloadedFiles.sort((a, b) => a.compareTo(b));
       }
-      _filterFiles(_searchController.text);
+      _filterFiles(
+          _searchController.text); // Update filteredFiles after sorting
     });
   }
 
@@ -315,9 +385,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
       downloadedFiles.remove(filePath);
       filteredFiles.remove(filePath);
 
-      // Call the callback function provided by HomeScreen
-      widget.onFileDeleted?.call(filePath.split('/').last);
-
       // Show a confirmation dialog
       showDialog(
         context: context,
@@ -362,24 +429,31 @@ class _LibraryScreenState extends State<LibraryScreen> {
       );
     }
   }
-
-  Future<void> openPdfViewer(BuildContext context, String filePath,
-      Function(String, String) onFileOpened) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PDFView(
-          filePath: filePath,
-          enableSwipe: true,
-          swipeHorizontal: true,
-          autoSpacing: true,
-          pageSnap: true,
-          onViewCreated: (PDFViewController controller) {},
-        ),
-      ),
-    );
-
-    String fileName = filePath.split('/').last;
-    onFileOpened(fileName, filePath);
-  }
 }
+
+void _navigateToSelectedPage(BuildContext context, int index) {
+  // Handle navigation to selected page
+}
+Future<void> openPdfViewer(BuildContext context, String filePath,
+    Function(String, String) onFileOpened) async {
+  await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => PDFView(
+        filePath: filePath,
+        enableSwipe: true,
+        swipeHorizontal: true,
+        autoSpacing: true,
+        pageSnap: true,
+        onViewCreated: (PDFViewController controller) {},
+      ),
+    ),
+  );
+
+  String fileName = filePath.split('/').last;
+  onFileOpened(fileName, filePath);
+}
+  
+  
+
+//

@@ -19,6 +19,7 @@ class _PresidentialDirectivesState extends State<PresidentialDirectives> {
   TextEditingController _searchController = TextEditingController();
   List<PresidentialDirective> _presidentialDirectives = [];
   List<PresidentialDirective> _filteredPresidentialDirectives = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -27,27 +28,33 @@ class _PresidentialDirectivesState extends State<PresidentialDirectives> {
   }
 
   Future<void> fetchPresidentialCirculars() async {
-    final response = await http.get(
-      Uri.parse('$baseURL/presidential_directives'),
-      headers: {
-        'Accept': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic>? data = json.decode(response.body)['presidentials'];
+    try {
+      final response = await http.get(
+        Uri.parse('$baseURL/presidential_directives'),
+        headers: {
+          'Accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic>? data = json.decode(response.body)['presidentials'];
 
-      if (data != null) {
-        setState(() {
-          _presidentialDirectives =
-              data.map((item) => PresidentialDirective.fromJson(item)).toList();
-          _filteredPresidentialDirectives = _presidentialDirectives;
-        });
+        if (data != null) {
+          setState(() {
+            _presidentialDirectives = data
+                .map((item) => PresidentialDirective.fromJson(item))
+                .toList();
+            _filteredPresidentialDirectives = _presidentialDirectives;
+            _isLoading = false;
+          });
+        }
+      } else {
+        // Handle error
+        print('Failed to load latest issuances');
+        print('Response status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
       }
-    } else {
-      // Handle error
-      print('Failed to load latest issuances');
-      print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
+    } catch (e) {
+      print('Error fetching presidential directives: $e');
     }
   }
 
@@ -70,12 +77,28 @@ class _PresidentialDirectivesState extends State<PresidentialDirectives> {
         ),
         backgroundColor: Colors.blue[900],
       ),
-      body: _buildBody(),
+      body: _isLoading ? _buildLoadingWidget() : _buildBody(),
       drawer: Sidebar(
         currentIndex: 1,
         onItemSelected: (index) {
           _navigateToSelectedPage(context, index);
         },
+      ),
+    );
+  }
+
+  Widget _buildLoadingWidget() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(), // Circular progress indicator
+          SizedBox(height: 16),
+          Text(
+            'Loading Files',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }

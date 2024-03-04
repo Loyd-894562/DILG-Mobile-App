@@ -4,7 +4,6 @@ import 'package:DILGDOCS/Services/auth_services.dart';
 import 'package:DILGDOCS/Services/globals.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'edit_user.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   @override
@@ -126,6 +125,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ElevatedButton(
               onPressed: () {
                 _resetPassword();
+                Navigator.pushReplacementNamed(context, '/settings');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[900],

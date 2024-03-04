@@ -19,6 +19,7 @@ class _MemoCircularsState extends State<MemoCirculars> {
   TextEditingController _searchController = TextEditingController();
   List<MemoCircular> _memoCirculars = [];
   List<MemoCircular> _filteredMemoCirculars = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -27,26 +28,31 @@ class _MemoCircularsState extends State<MemoCirculars> {
   }
 
   Future<void> fetchMemoCirculars() async {
-    final response = await http.get(
-      Uri.parse('$baseURL/memo_circulars'),
-      headers: {
-        'Accept': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body)['memos'];
+    try {
+      final response = await http.get(
+        Uri.parse('$baseURL/memo_circulars'),
+        headers: {
+          'Accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body)['memos'];
 
-      setState(() {
-        _memoCirculars =
-            data.map((item) => MemoCircular.fromJson(item)).toList();
-        _filteredMemoCirculars =
-            _memoCirculars; // Initially set the filtered list to all items
-      });
-    } else {
-      // Handle error
-      print('Failed to load latest issuances');
-      print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
+        setState(() {
+          _memoCirculars =
+              data.map((item) => MemoCircular.fromJson(item)).toList();
+          _filteredMemoCirculars =
+              _memoCirculars; // Initially set the filtered list to all items
+          _isLoading = false;
+        });
+      } else {
+        // Handle error
+        print('Failed to load latest issuances');
+        print('Response status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    } catch (e) {
+      print('Error fetching memo circulars: $e');
     }
   }
 
@@ -69,12 +75,28 @@ class _MemoCircularsState extends State<MemoCirculars> {
         ),
         backgroundColor: Colors.blue[900],
       ),
-      body: _buildBody(),
+      body: _isLoading ? _buildLoadingWidget() : _buildBody(),
       drawer: Sidebar(
         currentIndex: 1,
         onItemSelected: (index) {
           _navigateToSelectedPage(context, index);
         },
+      ),
+    );
+  }
+
+  Widget _buildLoadingWidget() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(), // Circular progress indicator
+          SizedBox(height: 16),
+          Text(
+            'Loading Files',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }

@@ -1,15 +1,15 @@
 import 'dart:convert';
-import 'package:DILGDOCS/Services/globals.dart';
-import 'package:DILGDOCS/models/legal_opinions.dart';
-import 'package:DILGDOCS/screens/draft_issuances.dart';
-import 'package:DILGDOCS/screens/file_utils.dart';
-import 'package:DILGDOCS/screens/joint_circulars.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 
 import 'sidebar.dart';
 import 'details_screen.dart';
-import 'package:http/http.dart' as http;
+import 'package:DILGDOCS/Services/globals.dart';
+import 'package:DILGDOCS/models/legal_opinions.dart';
+import 'package:DILGDOCS/screens/file_utils.dart';
+import 'package:DILGDOCS/screens/joint_circulars.dart';
+import 'package:DILGDOCS/screens/draft_issuances.dart';
 
 class LegalOpinions extends StatefulWidget {
   @override
@@ -20,6 +20,7 @@ class _LegalOpinionsState extends State<LegalOpinions> {
   TextEditingController _searchController = TextEditingController();
   List<LegalOpinion> _legalOpinions = [];
   List<LegalOpinion> _filteredLegalOpinions = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -42,6 +43,7 @@ class _LegalOpinionsState extends State<LegalOpinions> {
         _legalOpinions =
             data.map((item) => LegalOpinion.fromJson(item)).toList();
         _filteredLegalOpinions = _legalOpinions;
+        _isLoading = false; // Set loading state to false when loading is done
       });
     } else {
       print('Failed to load latest opinions');
@@ -67,12 +69,28 @@ class _LegalOpinionsState extends State<LegalOpinions> {
           ),
         ),
       ),
-      body: _buildBody(),
+      body: _isLoading ? _buildLoadingWidget() : _buildBody(),
       drawer: Sidebar(
         currentIndex: 7,
         onItemSelected: (index) {
           Navigator.pop(context);
         },
+      ),
+    );
+  }
+
+  Widget _buildLoadingWidget() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(), // Circular progress indicator
+          SizedBox(height: 16),
+          Text(
+            'Loading Files',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }

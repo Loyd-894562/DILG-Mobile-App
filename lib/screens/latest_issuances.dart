@@ -1,15 +1,13 @@
 import 'dart:convert';
 import 'package:DILGDOCS/models/latest_issuances.dart';
-import 'package:DILGDOCS/screens/file_utils.dart';
 import 'package:flutter/foundation.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import '../Services/globals.dart';
-import '../models/latest_issuances.dart';
 import '../utils/routes.dart';
 import 'sidebar.dart';
 import 'details_screen.dart';
-import 'package:http/http.dart' as http;
 import 'package:anim_search_bar/anim_search_bar.dart';
 
 class LatestIssuances extends StatefulWidget {
@@ -19,9 +17,9 @@ class LatestIssuances extends StatefulWidget {
 
 class _LatestIssuancesState extends State<LatestIssuances> {
   List<LatestIssuance> _latestIssuances = [];
-  List<LatestIssuance> _filteredLatestIssuances =
-      []; // Initialize filtered list
+  List<LatestIssuance> _filteredLatestIssuances = [];
   TextEditingController _searchController = TextEditingController();
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -47,11 +45,11 @@ class _LatestIssuancesState extends State<LatestIssuances> {
           _latestIssuances =
               data.map((item) => LatestIssuance.fromJson(item)).toList();
           _filteredLatestIssuances = _latestIssuances;
+          _isLoading = false; // Set loading to false when data is loaded
         });
       } else {
         print('Failed to load latest opinions: Data format error');
-        print(
-            'Response body: ${response.body}'); // Print response body for debugging
+        print('Response body: ${response.body}');
       }
     } else {
       print('Failed to load latest opinions');
@@ -77,7 +75,7 @@ class _LatestIssuancesState extends State<LatestIssuances> {
           ),
         ),
       ),
-      body: _buildBody(),
+      body: _isLoading ? _buildLoadingWidget() : _buildBody(),
       drawer: Sidebar(
         currentIndex: 7,
         onItemSelected: (index) {
@@ -87,17 +85,29 @@ class _LatestIssuancesState extends State<LatestIssuances> {
     );
   }
 
+  Widget _buildLoadingWidget() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(), // Circular progress indicator
+          SizedBox(height: 16),
+          Text(
+            'Loading Files',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBody() {
     return SingleChildScrollView(
       child: Column(
         children: [
           // Search Input
-          Container(
-            margin: EdgeInsets.only(top: 16.0),
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-            ),
+          Padding(
+            padding: EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -109,9 +119,7 @@ class _LatestIssuancesState extends State<LatestIssuances> {
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: EdgeInsets.symmetric(vertical: 16.0),
               ),
-              style: TextStyle(fontSize: 16.0),
               onChanged: (value) {
                 // Call the function to filter the list based on the search query
                 _filterLatestIssuances(value); // Corrected method call
@@ -119,7 +127,7 @@ class _LatestIssuancesState extends State<LatestIssuances> {
             ),
           ),
 
-          // Display the filtered presidential directives
+          // Display the filtered latest issuances
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -282,7 +290,8 @@ class _LatestIssuancesState extends State<LatestIssuances> {
         final referenceNo = issuance.issuance.referenceNo.toLowerCase();
         final outcome = issuance.outcome.toLowerCase();
         return title.contains(query.toLowerCase()) ||
-            referenceNo.contains(query.toLowerCase());
+            referenceNo.contains(query.toLowerCase()) ||
+            outcome.contains(query.toLowerCase());
       }).toList();
     });
   }
@@ -332,6 +341,18 @@ class _LatestIssuancesState extends State<LatestIssuances> {
       return text;
     } else {
       return text.substring(0, maxLength) + '...';
+    }
+  }
+
+  String getTypeForDownload(String type) {
+    // Define your logic here to determine the type for download
+    // For example:
+    if (type == 'pdf') {
+      return 'PDF';
+    } else if (type == 'doc') {
+      return 'Document';
+    } else {
+      return 'Unknown';
     }
   }
 
