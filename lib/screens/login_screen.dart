@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'package:DILGDOCS/Services/globals.dart';
-import 'package:DILGDOCS/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:DILGDOCS/screens/home_screen.dart';
 import '../Services/auth_services.dart';
-import 'package:http/http.dart'
-    as http; // Make sure to import your HomeScreen widget
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key, required this.title});
@@ -22,29 +20,67 @@ class _LoginScreenState extends State<LoginScreen> {
   String passwordError = '';
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+  bool _isLoggingIn = false;
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
     super.initState();
-    checkLoggedIn(); // Check if user is already logged in when screen initializes
+    checkLoggedIn();
   }
 
-  checkLoggedIn() async {
+  Future<void> saveAuthToken(String token) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? authToken = prefs.getString('authToken');
+    await prefs.setString('authToken', token);
+  }
 
+  Future<String?> getAuthToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('authToken');
+  }
+
+  Future<void> clearAuthToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('authToken');
+  }
+
+  void checkLoggedIn() async {
+    String? authToken = await getAuthToken();
     if (authToken != null) {
-      // If authToken exists, navigate to HomeScreen directly
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+      bool isValidToken = await AuthServices.validateToken(authToken);
+      if (isValidToken) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      } else {
+        clearAuthToken();
+      }
+    }
+  }
+
+  // Function to update visitor count
+  void updateVisitorCount() async {
+    var url = 'http://192.168.0.109:8000//update-visitor-count';
+    //https: //issuances.dilgbohol.com/update-visitor-count
+    try {
+      final response = await http.post(Uri.parse(url));
+      if (response.statusCode == 200) {
+        print('Visitor count updated successfully');
+      } else {
+        print('Failed to update visitor count: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Error updating visitor count: $e');
     }
   }
 
   loginPressed() async {
+    setState(() {
+      _isLoggingIn = true;
+    });
     if (_emailController.text.isNotEmpty &&
-        _passwordController.text.isNotEmpty) {  
+        _passwordController.text.isNotEmpty) {
       try {
         http.Response response = await AuthServices.login(
           _emailController.text,
@@ -58,11 +94,12 @@ class _LoginScreenState extends State<LoginScreen> {
         if (response.statusCode == 200) {
           final token = responseMap['token'];
 
-          // Store token locally
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          prefs.setString('authToken', token);
+          await AuthServices.storeToken(token);
+          await AuthServices.storeAuthenticated(true);
 
-          // Navigate to HomeScreen
+          // Call updateVisitorCount after successful login
+          updateVisitorCount();
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -78,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
         print("Stack trace: $stackTrace");
         setState(() {
           emailError = '';
-          passwordError = 'An error occurred during login';
+          passwordError = 'Incorrect email or password';
         });
       }
     } else {
@@ -87,6 +124,9 @@ class _LoginScreenState extends State<LoginScreen> {
         passwordError = 'Enter your password';
       });
     }
+    setState(() {
+      _isLoggingIn = false;
+    });
   }
 
   @override
@@ -137,24 +177,31 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: 8),
                     TextFormField(
                       controller: _emailController,
-                      decoration: InputDecoration(labelText: 'Email'),
-                      validator: (_emailController) {
-                        if (_emailController == null ||
-                            _emailController.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        // Add more complex email validation if needed
-                        return null;
-                      },
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        errorText: emailError.isNotEmpty ? emailError : null,
+                      ),
                     ),
                     SizedBox(height: 8),
                     TextField(
                       controller: _passwordController,
-                      obscureText: true,
+                      obscureText: !_isPasswordVisible,
                       decoration: InputDecoration(
                         labelText: 'Password',
                         errorText:
                             passwordError.isNotEmpty ? passwordError : null,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
                       ),
                     ),
                     SizedBox(height: 8),
@@ -171,10 +218,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text('Remember Me'),
                         Spacer(),
                         ElevatedButton(
-                          onPressed: () {
-                            loginPressed();
-                          }, // Directly pass the function reference
-                          child: Text('Log in'),
+                          onPressed: _isLoggingIn ? null : loginPressed,
+                          child: _isLoggingIn
+                              ? CircularProgressIndicator()
+                              : Text('Log in'),
                         ),
                       ],
                     ),

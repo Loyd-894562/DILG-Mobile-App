@@ -1,11 +1,8 @@
-import 'dart:convert';
 import 'dart:io';
-
-import 'package:DILGDOCS/screens/bottom_navigation.dart';
 import 'package:DILGDOCS/screens/sidebar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class LibraryScreen extends StatefulWidget {
   final Function(String, String)? onFileOpened;
@@ -25,7 +22,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   List<String> downloadedFiles = [];
   List<String> filteredFiles = [];
   bool isSearching = false;
-  Map<String, DateTime> downloadedFilesWithTime = {};
+  Map<String, DateTime> downloadTimes = {};
 
   @override
   void initState() {
@@ -54,56 +51,33 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
     for (var entity in entities) {
       if (entity is Directory) {
+        // Check if entity is a directory before recursively calling loadDownloadedFiles
         await loadDownloadedFiles(entity);
       } else if (entity is File && entity.path.toLowerCase().endsWith('.pdf')) {
         downloadedFiles.add(entity.path);
-        // Store the last modified timestamp for sorting
-        downloadedFilesWithTime[entity.path] = entity.lastModifiedSync();
+
+        // Store download time
+        downloadTimes[entity.path] = entity.lastModifiedSync();
       }
     }
 
-    // Sort files by last modified timestamp in descending order
-    downloadedFiles.sort((a, b) =>
-        downloadedFilesWithTime[b]!.compareTo(downloadedFilesWithTime[a]!));
-
-    // Update filteredFiles list to reflect the changes
-    _filterFiles(_searchController.text);
+    // Sort files based on download time
+    downloadedFiles
+        .sort((a, b) => downloadTimes[b]!.compareTo(downloadTimes[a]!));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Library',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: Colors.white),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        backgroundColor: Colors.blue[900],
-      ),
       drawer: Sidebar(
         currentIndex: 0,
         onItemSelected: (index) {
           _navigateToSelectedPage(context, index);
         },
       ),
-      bottomNavigationBar: BottomNavigation(
-        currentIndex: 2,
-        onTabTapped: (index) {
-          // Handle bottom navigation item taps if needed
-        },
-      ),
       body: SingleChildScrollView(
         child: Container(
-          margin: EdgeInsets.only(top: 16.0), // Add margin top here
+          margin: EdgeInsets.only(top: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -128,7 +102,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 color: Colors.grey.withOpacity(0.5),
                 spreadRadius: 2,
                 blurRadius: 5,
-                offset: Offset(0, 3), // changes position of shadow
+                offset: Offset(0, 3),
               ),
             ],
           ),
@@ -171,13 +145,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
           Row(
             children: [
               _buildSearchBar(),
-              SizedBox(
-                  width:
-                      10), // Add spacing between search bar and other widgets
-              // Add other widgets here
+              SizedBox(width: 10),
             ],
           ),
-          // Add other rows or widgets as needed
         ],
       ),
     );
@@ -194,6 +164,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               'No downloaded issuances',
               style: TextStyle(
                 fontSize: 18,
+                fontFamily: 'Poppins', // Apply font family here
               ),
             ),
           ),
@@ -207,23 +178,27 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 itemCount: filteredFiles.length,
                 itemBuilder: (BuildContext context, int index) {
                   final String file = filteredFiles[index];
-                  final fileName = file.split('/').last; // Extract file name
+                  final fileName = file.split('/').last;
                   return Dismissible(
-                    key: Key(file),
-                    direction: DismissDirection.endToStart,
+                    key: Key(file), // Unique key for each item
+                    direction: DismissDirection.endToStart, // Swipe direction
                     background: Container(
+                      color: Colors.red, // Background color when swiping
                       alignment: Alignment.centerRight,
-                      padding: EdgeInsets.only(right: 20.0),
-                      color: Colors.red,
+                      padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Icon(
                         Icons.delete,
                         color: Colors.white,
                       ),
                     ),
                     confirmDismiss: (direction) async {
+                      // Show confirmation dialog when swiping
                       return await _showDeleteConfirmationDialog(context, file);
                     },
-                    onDismissed: (direction) {},
+                    onDismissed: (direction) {
+                      // Delete the item when dismissed
+                      _deleteFile(file);
+                    },
                     child: ListTile(
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,14 +211,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
                               ),
                               SizedBox(width: 10),
                               Expanded(
-                                child: _buildHighlightedTitle(
-                                    fileName), // Use fileName instead of file
+                                child: _buildHighlightedTitle(fileName),
                               ),
                             ],
                           ),
                           SizedBox(height: 4),
                           Container(
-                            height: 0.5, // Adjust thickness here
+                            height: 0.5,
                             color: Colors.black,
                           ),
                         ],
@@ -270,28 +244,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final RegExp regex = RegExp(_searchController.text, caseSensitive: false);
     final Iterable<Match> matches = regex.allMatches(title);
 
-    // If no matches found, return the title as regular text
-    if (matches.isEmpty) {
-      return Text(
-        title,
-        style: TextStyle(
-          fontSize: 16,
-          color: Colors.black, // Set the default color to black
-        ),
-      );
-    }
-
-    // Create a list of TextSpans to highlight the matches
     final List<TextSpan> children = [];
     int start = 0;
     for (Match match in matches) {
       if (match.start != start) {
         children.add(
           TextSpan(
-            text: title.substring(start, match.start),
+            text: _truncateFilename(title.substring(start, match.start)),
             style: TextStyle(
               fontSize: 16,
-              color: Colors.black, // Set the default color to black
+              color: Colors.black,
+              fontFamily: 'Poppins',
             ),
           ),
         );
@@ -301,22 +264,23 @@ class _LibraryScreenState extends State<LibraryScreen> {
           text: title.substring(match.start, match.end),
           style: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.bold, // Highlight style
-            color: Colors.blue, // Highlight color
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+            fontFamily: 'Poppins',
           ),
         ),
       );
       start = match.end;
     }
 
-    // Add the remaining part of the title
     if (start != title.length) {
       children.add(
         TextSpan(
-          text: title.substring(start),
+          text: _truncateFilename(title.substring(start)),
           style: TextStyle(
             fontSize: 16,
-            color: Colors.black, // Set the default color to black
+            color: Colors.black,
+            fontFamily: 'Poppins',
           ),
         ),
       );
@@ -326,20 +290,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
       text: TextSpan(
         children: children,
       ),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 2,
     );
   }
 
-  void _sortFiles(String option) {
-    setState(() {
-      if (option == 'Date') {
-        downloadedFiles.sort((a, b) =>
-            File(a).lastModifiedSync().compareTo(File(b).lastModifiedSync()));
-      } else if (option == 'Name') {
-        downloadedFiles.sort((a, b) => a.compareTo(b));
-      }
-      _filterFiles(
-          _searchController.text); // Update filteredFiles after sorting
-    });
+  String _truncateFilename(String fileName, {int maxLength = 20}) {
+    if (fileName.length <= maxLength) {
+      return fileName;
+    } else {
+      return fileName.substring(0, maxLength - 3) + '...';
+    }
   }
 
   void _filterFiles(String query) {
@@ -385,6 +346,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
       downloadedFiles.remove(filePath);
       filteredFiles.remove(filePath);
 
+      // Call the onFileDeleted function provided by HomeScreen
+      widget.onFileDeleted?.call(filePath.split('/').last);
+
       // Show a confirmation dialog
       showDialog(
         context: context,
@@ -429,31 +393,81 @@ class _LibraryScreenState extends State<LibraryScreen> {
       );
     }
   }
-}
 
-void _navigateToSelectedPage(BuildContext context, int index) {
-  // Handle navigation to selected page
-}
-Future<void> openPdfViewer(BuildContext context, String filePath,
-    Function(String, String) onFileOpened) async {
-  await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => PDFView(
-        filePath: filePath,
-        enableSwipe: true,
-        swipeHorizontal: true,
-        autoSpacing: true,
-        pageSnap: true,
-        onViewCreated: (PDFViewController controller) {},
+  void _navigateToSelectedPage(BuildContext context, int index) {
+    // Handle navigation to selected page
+  }
+
+  Future<void> openPdfViewer(BuildContext context, String filePath,
+      Function(String, String) onFileOpened) async {
+    String fileName = filePath.split('/').last;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PDFViewerScreen(
+          filePath: filePath,
+          fileName: fileName,
+        ),
       ),
-    ),
-  );
-
-  String fileName = filePath.split('/').last;
-  onFileOpened(fileName, filePath);
+    );
+    onFileOpened(fileName, filePath);
+  }
 }
-  
-  
 
-//
+class PDFViewerScreen extends StatelessWidget {
+  final String filePath;
+  final String fileName;
+  final Function(String, String)? onFileOpened;
+  final Function(String)? onFileDeleted; // Add onFileDeleted function
+
+  PDFViewerScreen(
+      {required this.filePath,
+      required this.fileName,
+      this.onFileOpened,
+      this.onFileDeleted});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title:
+            Text(fileName), // Use the truncated filename in the app bar title
+      ),
+      body: FutureBuilder<File>(
+        future: _getFile(filePath),
+        builder: (BuildContext context, AsyncSnapshot<File> snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              snapshot.hasData) {
+            return SfPdfViewer.file(snapshot.data!);
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  Future<File> _getFile(String filePath) async {
+    File file = File(filePath);
+    if (await file.exists()) {
+      return file;
+    } else {
+      throw 'File not found: $filePath';
+    }
+  }
+
+  // @override
+  // void dispose() {
+  //   super.dispose();
+  //   // Call onFileOpened function when disposing the PDFViewerScreen
+  //   if (onFileOpened != null) {
+  //     onFileOpened!(fileName, filePath);
+  //   }
+  // }
+}

@@ -1,15 +1,14 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
-
-import 'sidebar.dart';
-import 'details_screen.dart';
 import 'package:DILGDOCS/Services/globals.dart';
 import 'package:DILGDOCS/models/legal_opinions.dart';
 import 'package:DILGDOCS/screens/file_utils.dart';
-import 'package:DILGDOCS/screens/joint_circulars.dart';
-import 'package:DILGDOCS/screens/draft_issuances.dart';
+import 'package:connectivity/connectivity.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'details_screen.dart';
+import 'package:http/http.dart' as http;
 
 class LegalOpinions extends StatefulWidget {
   @override
@@ -20,12 +19,71 @@ class _LegalOpinionsState extends State<LegalOpinions> {
   TextEditingController _searchController = TextEditingController();
   List<LegalOpinion> _legalOpinions = [];
   List<LegalOpinion> _filteredLegalOpinions = [];
+  bool _hasInternetConnection = true;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchLegalOpinions();
+    // fetchLegalOpinions();
+    _loadContentIfConnected();
+    _checkInternetConnection();
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.none) {
+        setState(() {
+          _hasInternetConnection = false;
+        });
+      } else {
+        _loadContentIfConnected();
+      }
+    });
+  }
+
+  Future<void> _loadContentIfConnected() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult != ConnectivityResult.none) {
+      setState(() {
+        _hasInternetConnection = true;
+      });
+      // Load your content here
+      fetchLegalOpinions();
+    }
+  }
+
+  Future<void> _checkInternetConnection() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        _hasInternetConnection = false;
+      });
+    }
+  }
+
+  Future<void> _openWifiSettings() async {
+    const url = 'app-settings:';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      // Provide a generic message for both Android and iOS users
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Unable to open Wi-Fi settings'),
+            content: Text(
+                'Please open your Wi-Fi settings manually via the device settings.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   Future<void> fetchLegalOpinions() async {
@@ -43,10 +101,10 @@ class _LegalOpinionsState extends State<LegalOpinions> {
         _legalOpinions =
             data.map((item) => LegalOpinion.fromJson(item)).toList();
         _filteredLegalOpinions = _legalOpinions;
-        _isLoading = false; // Set loading state to false when loading is done
+        _isLoading = false;
       });
     } else {
-      print('Failed to load latest opinions');
+      print('Failed to load latest legal opinions');
       print('Response status code: ${response.statusCode}');
       print('Response body: ${response.body}');
     }
@@ -60,22 +118,34 @@ class _LegalOpinionsState extends State<LegalOpinions> {
           'Legal Opinions',
           style: TextStyle(
             fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: Colors.blue[900]),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+        iconTheme: IconThemeData(
+          color: Colors.white,
         ),
+        backgroundColor: Colors.blue[900],
       ),
-      body: _isLoading ? _buildLoadingWidget() : _buildBody(),
-      drawer: Sidebar(
-        currentIndex: 7,
-        onItemSelected: (index) {
-          Navigator.pop(context);
-        },
-      ),
+      body: _hasInternetConnection
+          ? (_isLoading ? _buildLoadingWidget() : _buildBody())
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'No internet connection',
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                  SizedBox(height: 10.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      _openWifiSettings();
+                    },
+                    child: Text('Connect to Internet'),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -172,14 +242,9 @@ class _LegalOpinionsState extends State<LegalOpinions> {
                                   ),
                                   SizedBox(height: 4.0),
                                   Text.rich(
-                                    _filteredLegalOpinions[index]
-                                                .issuance
-                                                .referenceNo !=
-                                            'N/A'
-                                        ? highlightMatches(
-                                            'Ref #: ${_filteredLegalOpinions[index].issuance.referenceNo}',
-                                            _searchController.text)
-                                        : TextSpan(text: 'Ref #: N/A'),
+                                    highlightMatches(
+                                        'Ref #: ${_filteredLegalOpinions[index].issuance.referenceNo}',
+                                        _searchController.text),
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,

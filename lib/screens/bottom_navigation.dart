@@ -1,58 +1,51 @@
 import 'package:flutter/material.dart';
 
-class BottomNavigation extends StatelessWidget {
+class BottomNavigation extends StatefulWidget {
   final int currentIndex;
   final Function(int) onTabTapped;
 
   const BottomNavigation({
+    Key? key,
     required this.currentIndex,
     required this.onTabTapped,
-  });
+  }) : super(key: key);
 
+  @override
+  State<BottomNavigation> createState() => _BottomNavigationState();
+}
+
+class _BottomNavigationState extends State<BottomNavigation> {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
+      key: UniqueKey(),
       type: BottomNavigationBarType.fixed,
-      currentIndex: currentIndex,
-      onTap: onTabTapped,
-      items: const [
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.grey,
+      currentIndex: widget.currentIndex,
+      onTap: (index) {
+        // Call the onTabTapped function provided by the parent widget
+        widget.onTabTapped(index);
+      },
+      items: [
         BottomNavigationBarItem(
-          backgroundColor: Color.fromARGB(255, 3, 80, 162),
-          icon: Icon(
-            Icons.home,
-            size: 25,
-            color: Colors.white,
-          ),
+          icon: Icon(Icons.home),
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(
-            Icons.search,
-            size: 25,
-            color: Colors.white,
-          ),
+          icon: Icon(Icons.search),
           label: 'Search',
         ),
         BottomNavigationBarItem(
-          icon: Icon(
-            Icons.library_books,
-            size: 25,
-            color: Colors.white,
-          ),
+          icon: Icon(Icons.library_books),
           label: 'Library',
         ),
         BottomNavigationBarItem(
-          icon: Icon(
-            Icons.people,
-            size: 25,
-            color: Colors.white,
-          ),
-          label: 'Profile',
+          icon: Icon(Icons.settings),
+          label: 'Settings',
         ),
       ],
-      backgroundColor: Color.fromARGB(255, 3, 80, 162),
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white.withOpacity(0.5),
+      backgroundColor: Colors.blue[900],
     );
   }
 }

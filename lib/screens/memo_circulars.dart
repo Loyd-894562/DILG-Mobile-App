@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:DILGDOCS/Services/globals.dart';
 import 'package:DILGDOCS/screens/file_utils.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Import other necessary files
 import '../models/memo_circulars.dart';
@@ -19,40 +21,95 @@ class _MemoCircularsState extends State<MemoCirculars> {
   TextEditingController _searchController = TextEditingController();
   List<MemoCircular> _memoCirculars = [];
   List<MemoCircular> _filteredMemoCirculars = [];
+  bool _hasInternetConnection = true;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchMemoCirculars();
+    // fetchMemoCirculars();
+    _checkInternetConnection();
+    _loadContentIfConnected();
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.none) {
+        setState(() {
+          _hasInternetConnection = false;
+        });
+      } else {
+        _loadContentIfConnected();
+      }
+    });
+  }
+
+  Future<void> _loadContentIfConnected() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult != ConnectivityResult.none) {
+      setState(() {
+        _hasInternetConnection = true;
+      });
+      // Load your memo circulars
+      fetchMemoCirculars();
+    }
+  }
+
+  Future<void> _checkInternetConnection() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        _hasInternetConnection = false;
+      });
+    }
+  }
+
+  Future<void> _openWifiSettings() async {
+    const url = 'app-settings:';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      // Provide a generic message for both Android and iOS users
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Unable to open Wi-Fi settings'),
+            content: Text(
+                'Please open your Wi-Fi settings manually via the device settings.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   Future<void> fetchMemoCirculars() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseURL/memo_circulars'),
-        headers: {
-          'Accept': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body)['memos'];
+    final response = await http.get(
+      Uri.parse('$baseURL/memo_circulars'),
+      headers: {
+        'Accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body)['memos'];
 
-        setState(() {
-          _memoCirculars =
-              data.map((item) => MemoCircular.fromJson(item)).toList();
-          _filteredMemoCirculars =
-              _memoCirculars; // Initially set the filtered list to all items
-          _isLoading = false;
-        });
-      } else {
-        // Handle error
-        print('Failed to load latest issuances');
-        print('Response status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
-      }
-    } catch (e) {
-      print('Error fetching memo circulars: $e');
+      setState(() {
+        _memoCirculars =
+            data.map((item) => MemoCircular.fromJson(item)).toList();
+        _filteredMemoCirculars =
+            _memoCirculars; // Initially set the filtered list to all items
+        _isLoading = false;
+      });
+    } else {
+      // Handle error
+      print('Failed to load latest issuances');
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
     }
   }
 
@@ -67,21 +124,31 @@ class _MemoCircularsState extends State<MemoCirculars> {
             color: Colors.white,
           ),
         ),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: Colors.white),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+        iconTheme: IconThemeData(
+          color: Colors.white,
         ),
         backgroundColor: Colors.blue[900],
       ),
-      body: _isLoading ? _buildLoadingWidget() : _buildBody(),
-      drawer: Sidebar(
-        currentIndex: 1,
-        onItemSelected: (index) {
-          _navigateToSelectedPage(context, index);
-        },
-      ),
+      body: _hasInternetConnection
+          ? (_isLoading ? _buildLoadingWidget() : _buildBody())
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'No internet connection',
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                  SizedBox(height: 10.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      _openWifiSettings();
+                    },
+                    child: Text('Connect to Internet'),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -176,32 +243,22 @@ class _MemoCircularsState extends State<MemoCirculars> {
                                   ),
                                   SizedBox(height: 4.0),
                                   Text.rich(
-                                    _filteredMemoCirculars[index]
-                                                .issuance
-                                                .referenceNo !=
-                                            'N/A'
-                                        ? highlightMatches(
-                                            'Ref #: ${_filteredMemoCirculars[index].issuance.referenceNo}',
-                                            _searchController.text)
-                                        : TextSpan(text: 'Ref #: N/A'),
+                                    highlightMatches(
+                                        'Ref #: ${_filteredMemoCirculars[index].issuance.referenceNo}',
+                                        _searchController.text),
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,
                                     ),
                                   ),
                                   Text.rich(
-                                    _filteredMemoCirculars[index]
-                                                .issuance
-                                                .referenceNo !=
-                                            'N/A'
-                                        ? highlightMatches(
-                                            'Responsible Office: ${_filteredMemoCirculars[index].responsible_office}',
-                                            _searchController.text)
-                                        : TextSpan(
-                                            text: 'Responsible Office: N/A'),
+                                    highlightMatches(
+                                        'Responsible Office: ${_filteredMemoCirculars[index].responsible_office}',
+                                        _searchController.text),
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],

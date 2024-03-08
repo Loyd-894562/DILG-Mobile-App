@@ -28,8 +28,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
-                Navigator.pop(context); // Close the modal
+                Navigator.pop(context); // Close the EditUser screen
+                Navigator.pushNamedAndRemoveUntil(context, '/home',
+                    (route) => false); // Navigate to the home screen
               },
               child: Text('OK'),
             ),
@@ -94,8 +95,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 ),
               ),
               obscureText: _obscurePassword,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a new password';
+                }
+                return null;
+              },
             ),
-            SizedBox(height: 8.0),
             TextFormField(
               controller: _confirmPasswordController,
               style: TextStyle(color: Colors.black),
@@ -120,12 +126,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     : null,
               ),
               obscureText: _obscureConfirmPassword,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please confirm your password';
+                }
+                return null;
+              },
             ),
             SizedBox(height: 30.0),
             ElevatedButton(
               onPressed: () {
                 _resetPassword();
-                Navigator.pushReplacementNamed(context, '/settings');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[900],
@@ -166,6 +177,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           'Authentication token or user ID is null or empty. Unable to update profile.');
       return;
     }
+
     // Check if passwords match
     if (_passwordController.text == _confirmPasswordController.text) {
       // Prepare the data to send
@@ -173,36 +185,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         'new_password': _passwordController.text, // Change this key
       };
 
-      // Send the POST request to your backend API
-      // try {
-      //   final response = await http.put(
-      //     Uri.parse('$baseURL/users/$userId/change-password'),
-      //     body: json.encode(data),
-      //     headers: headers,
-      //   );
-
-      //   // Check the response status code
-      //   if (response.statusCode == 200) {
-      //     // Password changed successfully
-      //     _showPasswordChangedDialog(context);
-      //   } else {
-      //     // Handle errors based on the response from the server
-      //     // For example, display an error message to the user
-      //     ScaffoldMessenger.of(context).showSnackBar(
-      //       SnackBar(
-      //         content: Text('Failed to update profile: ${response.reasonPhrase}'),
-      //       ),
-      //     );
-      //   }
-      // } catch (error) {
-      //   // Handle network errors or other exceptions
-      //   print('Error: $error');
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(
-      //       content: Text('An error occurred. Please try again later.'),
-      //     ),
-      //   );
-      // }
       try {
         final response = await http.put(
           Uri.parse('$baseURL/users/$userId/change-password'),
@@ -216,7 +198,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           _showPasswordChangedDialog(context);
         } else {
           // Handle errors based on the response from the server
-          // For example, display an error message to the user
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content:
@@ -227,11 +208,24 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       } on SocketException catch (error) {
         // Handle no internet connection error
         print('No internet connection: $error');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'No internet connection. Please check your connection and try again.'),
-          ),
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('No Internet Connection'),
+              content: Text('Please check your connection and try again.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close the EditUser screen
+                    Navigator.pushNamedAndRemoveUntil(
+                        context, '/home', (route) => false);
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
         );
       } catch (error) {
         // Handle network errors or other exceptions

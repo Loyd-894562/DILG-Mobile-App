@@ -1,21 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:DILGDOCS/Services/globals.dart';
 import 'package:DILGDOCS/models/republic_acts.dart';
 import 'package:DILGDOCS/screens/details.dart';
-import 'package:DILGDOCS/screens/draft_issuances.dart';
-import 'package:DILGDOCS/screens/joint_circulars.dart';
-import 'package:DILGDOCS/screens/latest_issuances.dart';
-import 'package:DILGDOCS/screens/legal_opinions.dart';
-import 'package:DILGDOCS/screens/memo_circulars.dart';
-import 'package:DILGDOCS/screens/pdf_preview.dart';
-import 'package:DILGDOCS/screens/presidential_directives.dart';
-import 'package:DILGDOCS/screens/republic_acts.dart';
 import 'package:DILGDOCS/utils/routes.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import '../models/draft_issuances.dart';
 import '../models/joint_circulars.dart';
@@ -24,7 +12,6 @@ import '../models/legal_opinions.dart';
 import '../models/memo_circulars.dart';
 import '../models/presidential_directives.dart';
 import 'sidebar.dart';
-import 'bottom_navigation.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -229,39 +216,24 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Search',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: Colors.white),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        backgroundColor: Colors.blue[900],
-      ),
       drawer: Sidebar(
         currentIndex: 0,
         onItemSelected: (index) {
           _navigateToSelectedPage(context, index);
         },
       ),
-      bottomNavigationBar: BottomNavigation(
-        currentIndex: 1,
-        onTabTapped: (index) {},
-      ),
+      // bottomNavigationBar: BottomNavigation(
+      //   currentIndex: 1,
+      //   onTabTapped:(index){
+
+      //   },
+      // ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 20), // Add margin-top here
               Row(
                 children: [
                   Expanded(
@@ -272,7 +244,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             20), // Adjust the border radius as needed
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
+                            color: Colors.blue.withOpacity(0.5),
                             spreadRadius: 2,
                             blurRadius: 5,
                             offset: Offset(0, 3),
@@ -309,7 +281,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 20), // Add margin-bottom here
+              SizedBox(height: 20),
               _buildSearchResultsContainer(), // Updated to manage search results container
             ],
           ),

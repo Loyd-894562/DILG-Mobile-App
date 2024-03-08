@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'package:DILGDOCS/models/latest_issuances.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:DILGDOCS/screens/file_utils.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../Services/globals.dart';
-import '../utils/routes.dart';
-import 'sidebar.dart';
 import 'details_screen.dart';
-import 'package:anim_search_bar/anim_search_bar.dart';
+import 'package:http/http.dart' as http;
 
 class LatestIssuances extends StatefulWidget {
   @override
@@ -17,14 +16,47 @@ class LatestIssuances extends StatefulWidget {
 
 class _LatestIssuancesState extends State<LatestIssuances> {
   List<LatestIssuance> _latestIssuances = [];
-  List<LatestIssuance> _filteredLatestIssuances = [];
+  List<LatestIssuance> _filteredLatestIssuances =
+      []; // Initialize filtered list
   TextEditingController _searchController = TextEditingController();
+  bool _hasInternetConnection = true;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchLatestIssuances();
+    // fetchLatestIssuances();
+    _checkInternetConnection();
+    _loadContentIfConnected();
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.none) {
+        setState(() {
+          _hasInternetConnection = false;
+        });
+      } else {
+        _loadContentIfConnected();
+      }
+    });
+  }
+
+  Future<void> _loadContentIfConnected() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult != ConnectivityResult.none) {
+      setState(() {
+        _hasInternetConnection = true;
+      });
+      // Load your content here
+      fetchLatestIssuances();
+    }
+  }
+
+  Future<void> _checkInternetConnection() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        _hasInternetConnection = false;
+      });
+    }
   }
 
   Future<void> fetchLatestIssuances() async {
@@ -45,16 +77,44 @@ class _LatestIssuancesState extends State<LatestIssuances> {
           _latestIssuances =
               data.map((item) => LatestIssuance.fromJson(item)).toList();
           _filteredLatestIssuances = _latestIssuances;
-          _isLoading = false; // Set loading to false when data is loaded
+          _isLoading = false;
         });
       } else {
         print('Failed to load latest opinions: Data format error');
-        print('Response body: ${response.body}');
+        print(
+            'Response body: ${response.body}'); // Print response body for debugging
       }
     } else {
       print('Failed to load latest opinions');
       print('Response status code: ${response.statusCode}');
       print('Response body: ${response.body}');
+    }
+  }
+
+  Future<void> _openWifiSettings() async {
+    const url = 'app-settings:';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      // Provide a generic message for both Android and iOS users
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Unable to open Wi-Fi settings'),
+            content: Text(
+                'Please open your Wi-Fi settings manually via the device settings.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -66,22 +126,34 @@ class _LatestIssuancesState extends State<LatestIssuances> {
           'Latest Issuances',
           style: TextStyle(
             fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: Colors.blue[900]),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+        iconTheme: IconThemeData(
+          color: Colors.white,
         ),
+        backgroundColor: Colors.blue[900],
       ),
-      body: _isLoading ? _buildLoadingWidget() : _buildBody(),
-      drawer: Sidebar(
-        currentIndex: 7,
-        onItemSelected: (index) {
-          Navigator.pop(context);
-        },
-      ),
+      body: _hasInternetConnection
+          ? (_isLoading ? _buildLoadingWidget() : _buildBody())
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'No internet connection',
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                  SizedBox(height: 10.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      _openWifiSettings();
+                    },
+                    child: Text('Connect to Internet'),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -106,8 +178,9 @@ class _LatestIssuancesState extends State<LatestIssuances> {
       child: Column(
         children: [
           // Search Input
-          Padding(
-            padding: EdgeInsets.all(16.0),
+          Container(
+            margin: EdgeInsets.only(top: 16.0),
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -119,7 +192,9 @@ class _LatestIssuancesState extends State<LatestIssuances> {
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
                 ),
+                contentPadding: EdgeInsets.symmetric(vertical: 16.0),
               ),
+              style: TextStyle(fontSize: 16.0),
               onChanged: (value) {
                 // Call the function to filter the list based on the search query
                 _filterLatestIssuances(value); // Corrected method call
@@ -290,8 +365,7 @@ class _LatestIssuancesState extends State<LatestIssuances> {
         final referenceNo = issuance.issuance.referenceNo.toLowerCase();
         final outcome = issuance.outcome.toLowerCase();
         return title.contains(query.toLowerCase()) ||
-            referenceNo.contains(query.toLowerCase()) ||
-            outcome.contains(query.toLowerCase());
+            referenceNo.contains(query.toLowerCase());
       }).toList();
     });
   }
@@ -341,18 +415,6 @@ class _LatestIssuancesState extends State<LatestIssuances> {
       return text;
     } else {
       return text.substring(0, maxLength) + '...';
-    }
-  }
-
-  String getTypeForDownload(String type) {
-    // Define your logic here to determine the type for download
-    // For example:
-    if (type == 'pdf') {
-      return 'PDF';
-    } else if (type == 'doc') {
-      return 'Document';
-    } else {
-      return 'Unknown';
     }
   }
 

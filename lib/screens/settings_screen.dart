@@ -1,16 +1,16 @@
-import 'package:DILGDOCS/Services/globals.dart';
+import 'package:DILGDOCS/Services/auth_services.dart';
 import 'package:DILGDOCS/screens/change_password_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'edit_user.dart';
-import 'login_screen.dart';
 import 'about_screen.dart';
 import 'developers_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen();
+  final String? avatarPath;
 
+  const SettingsScreen({Key? key, this.avatarPath}) : super(key: key);
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
 }
@@ -19,12 +19,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool isAuthenticated = false;
   String userName = '';
   String email = '';
-  String userAvatar = '';
+  String? _selectedAvatarPath;
+
+  // Future<void> fetchUserDetails() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? avatarFileName = prefs.getString('userAvatar');
+  //   var userId = await AuthServices.getUserId();
+
+  //   if (avatarFileName != null && avatarFileName.isNotEmpty) {
+  //     setState(() {
+  //       // Construct the complete URL for fetching the avatar image
+  //       userAvatarUrl = '$baseURL/$avatarFileName';
+  //     });
+
+  //     // Print statements for debugging
+  //     print('Image URL: $userAvatarUrl');
+
+  //     // Display the image using NetworkImage within an Image widget
+  //     setState(() {
+  //       avatarImage = Image.network(userAvatarUrl!);
+  //     });
+  //   } else {
+  //     // Handle case where avatarFileName is null or empty
+  //     print('Avatar file name is null or empty');
+  //   }
+  // }
 
   @override
   void initState() {
     super.initState();
     _getUserInfo();
+    // fetchUserDetails();
+    _getSelectedAvatarPath();
   }
 
   Future<void> _getUserInfo() async {
@@ -39,32 +65,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  Future<void> _getSelectedAvatarPath() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? selectedAvatarPath = prefs.getString('selectedAvatarPath');
+    setState(() {
+      _selectedAvatarPath = selectedAvatarPath ?? '';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/home');
-              },
-              color: Colors.white,
-            ),
-            SizedBox(width: 8.0),
-            Text(
-              'Settings',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 30.0,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.blue[900],
-      ),
+      appBar: null, // No app bar in settings screen
+      bottomNavigationBar: null,
       body: _buildBody(),
     );
   }
@@ -84,11 +97,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  radius: 50.0,
-                  backgroundImage: userAvatar.isNotEmpty
-                      ? NetworkImage('$baseURL/images/$userAvatar')
-                          as ImageProvider
-                      : AssetImage('assets/eula.png'),
+                  backgroundImage: _selectedAvatarPath != null
+                      ? AssetImage(_selectedAvatarPath!)
+                      : AssetImage('assets/default.png'),
+                  radius: 50,
                 ),
                 SizedBox(width: 10.0),
                 Column(
@@ -96,8 +108,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     SizedBox(height: 25.0),
                     Text(
-                      'Welcome',
-                      style: TextStyle(color: Colors.grey),
+                      'Welcome, ',
+                      style: TextStyle(color: Colors.blue),
                     ),
                     SizedBox(height: 4.0),
                     Text(
@@ -130,7 +142,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         Icon(
                           Icons.person,
-                          color: Colors.grey,
+                          color: Colors.blue,
                         ),
                         SizedBox(width: 8.0),
                         Text(
@@ -176,7 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         Icon(
                           Icons.lock,
-                          color: Colors.grey,
+                          color: Colors.blue,
                         ),
                         SizedBox(width: 8.0),
                         Text(
@@ -206,7 +218,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // FAQs Button
             InkWell(
               onTap: () {
-                _launchURL();
+                _launchURL('https://dilgbohol.com/faqs');
               },
               child: Container(
                 padding: EdgeInsets.all(16.0),
@@ -217,7 +229,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         Icon(
                           Icons.question_answer,
-                          color: Colors.grey,
+                          color: Colors.blue,
                         ),
                         SizedBox(width: 8.0),
                         Text(
@@ -261,7 +273,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         Icon(
                           Icons.info,
-                          color: Colors.grey,
+                          color: Colors.blue,
                         ),
                         SizedBox(width: 8.0),
                         Text(
@@ -305,7 +317,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         Icon(
                           Icons.people,
-                          color: Colors.grey,
+                          color: Colors.blue,
                         ),
                         SizedBox(width: 8.0),
                         Text(
@@ -346,7 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         Icon(
                           Icons.exit_to_app,
-                          color: Colors.grey,
+                          color: Colors.blue,
                         ),
                         SizedBox(width: 8.0),
                         Text(
@@ -396,7 +408,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                _logout();
+                logout(context);
               },
               child: Text('Logout'),
             ),
@@ -406,24 +418,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _logout() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setBool('isAuthenticated', false);
+  Future<void> logout(BuildContext context) async {
+    await clearAuthToken();
 
-    setState(() {
-      isAuthenticated = false;
-    });
+    // Set isAuthenticated to false
+    await AuthServices.storeAuthenticated(false);
 
-    Navigator.pushReplacementNamed(context, '/login');
+    // Navigate to the login screen and remove all previous routes
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
-  void _launchURL() async {
-    const url =
-        'https://dilgbohol.com/faqs'; // Replace this URL with your desired destination URL
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
+// Function to clear authentication token
+  Future<void> clearAuthToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('authToken');
+  }
+
+  Future<void> _launchURL(String url) async {
+    try {
+      if (await canLaunch(url)) {
+        await launch(url);
+      } else {
+        throw 'Could not launch $url';
+      }
+    } catch (e) {
+      print('Error launching URL: $e');
     }
   }
 }
